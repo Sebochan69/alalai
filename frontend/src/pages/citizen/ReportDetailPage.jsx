@@ -13,8 +13,8 @@ export default function ReportDetailPage() {
     });
   }, [id]);
 
-  const closeReport = async () => {
-    const { data } = await reportsAPI.updateStatus(id, { status: "closed" });
+  const resolveReport = async () => {
+    const { data } = await reportsAPI.updateStatus(id, { status: "resolved" });
     setReport(data);
   };
 
@@ -34,9 +34,9 @@ export default function ReportDetailPage() {
       <p><strong>Priority:</strong> {report.priority}</p>
       <p><strong>Admin Comment:</strong> {report.admin_comment || "No comment yet"}</p>
 
-      {report.status === "resolved" && (
-        <button onClick={closeReport} className="mt-4 rounded bg-green-700 px-4 py-2 text-white">
-          Close Report
+      {report.status === "for review" && (
+        <button onClick={resolveReport} className="mt-4 rounded bg-green-700 px-4 py-2 text-white">
+          Mark as Resolved
         </button>
       )}
     </section>

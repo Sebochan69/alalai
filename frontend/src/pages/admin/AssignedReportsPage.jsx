@@ -38,9 +38,8 @@ export default function AssignedReportsPage() {
               onChange={(e) => updateStatus(report.id, e.target.value)}
             >
               <option value="pending">pending</option>
-              <option value="ongoing">ongoing</option>
-              <option value="resolved">resolved</option>
-              <option value="closed">closed</option>
+              <option value="in progress">in progress</option>
+              <option value="for review">for review</option>
             </select>
           </div>
         ))}

@@ -24,7 +24,7 @@ def find_possible_duplicate(
     - geospatial distance
     - same active status only
     """
-    active_reports = db.query(Report).filter(Report.status.in_(["pending", "ongoing"])).all()
+    active_reports = db.query(Report).filter(Report.status.in_(["pending", "in progress", "for review"])).all()
 
     incoming_text = f"{description} {address}".lower()
     incoming_words = set(incoming_text.split())

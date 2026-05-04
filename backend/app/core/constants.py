@@ -9,7 +9,7 @@ ALLOWED_TAGS = [
     "other",
 ]
 
-REPORT_STATUSES = ["pending", "ongoing", "resolved", "closed"]
+REPORT_STATUSES = ["pending", "in progress", "for review", "resolved"]
 
 PRIORITY_LEVELS = ["low", "medium", "high", "urgent"]
 

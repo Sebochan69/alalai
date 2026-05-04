@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { appConfig } from "../../config/appConfig";
-import { adminAPI } from "../../services/api";
+import { reportsAPI } from "../../services/api";
 
 export default function MapPage() {
   const [reports, setReports] = useState([]);
 
   useEffect(() => {
-    adminAPI.getMapData().then(({ data }) => setReports(data));
+    reportsAPI.getMapData().then(({ data }) => setReports(data));
   }, []);
 
   return (

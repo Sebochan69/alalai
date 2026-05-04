@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, require_admin
+from app.api.deps import get_current_user, get_db, require_admin
+from app.core.constants import REPORT_STATUSES
 from app.models.models import Report, User
 from app.services.ai.ai_service import AIService
 
@@ -15,7 +16,7 @@ def get_analytics(
 ):
     reports = db.query(Report).all()
     ai = AIService()
-    return ai.generate_analytics([
+    ai_analytics = ai.generate_analytics([
         {
             "id": report.id,
             "tag": report.tag,
@@ -29,11 +30,20 @@ def get_analytics(
         for report in reports
     ])
 
+    return {
+        **ai_analytics,
+        "total_complaints": len(reports),
+        "status_counts": {
+            status: sum(1 for report in reports if report.status == status)
+            for status in REPORT_STATUSES
+        },
+    }
+
 
 @router.get("/map/reports")
 def get_map_reports(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
 ):
     reports = db.query(Report).filter(Report.latitude.isnot(None), Report.longitude.isnot(None)).all()
     return [
