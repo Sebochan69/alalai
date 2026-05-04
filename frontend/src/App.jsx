@@ -70,13 +70,14 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/map"
+            path="/map"
             element={
-              <ProtectedRoute allowedRole="admin">
+              <ProtectedRoute>
                 <MapPage />
               </ProtectedRoute>
             }
           />
+          <Route path="/admin/map" element={<Navigate to="/map" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

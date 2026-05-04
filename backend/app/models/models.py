@@ -37,6 +37,7 @@ class Report(Base):
     priority = Column(String, nullable=True)
     ai_summary = Column(Text, nullable=True)
     dispatch_reason = Column(Text, nullable=True)
+    ai_processed_complaint = Column(Text, nullable=True)
     possible_duplicate_report_id = Column(Integer, nullable=True)
 
     status = Column(String, default="pending")

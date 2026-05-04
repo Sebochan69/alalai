@@ -21,6 +21,7 @@ export default function Navbar() {
             <>
               <Link to="/dashboard">Dashboard</Link>
               <Link to="/report/new">File Complaint</Link>
+              <Link to="/map">Map</Link>
             </>
           )}
 
@@ -28,7 +29,7 @@ export default function Navbar() {
             <>
               <Link to="/admin">Analytics</Link>
               <Link to="/admin/reports">Reports</Link>
-              <Link to="/admin/map">Map</Link>
+              <Link to="/map">Map</Link>
             </>
           )}
 

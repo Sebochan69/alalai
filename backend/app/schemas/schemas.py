@@ -44,6 +44,7 @@ class ReportOut(BaseModel):
     priority: Optional[str] = None
     ai_summary: Optional[str] = None
     dispatch_reason: Optional[str] = None
+    ai_processed_complaint: Optional[str] = None
     possible_duplicate_report_id: Optional[int] = None
     status: str
     admin_comment: Optional[str] = None

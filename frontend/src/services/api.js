@@ -26,12 +26,12 @@ export const reportsAPI = {
     }),
   getMyReports: () => api.get("/api/reports/mine"),
   getAssignedReports: () => api.get("/api/reports/assigned"),
+  getMapData: () => api.get("/api/reports/map"),
   updateStatus: (id, data) => api.patch(`/api/reports/${id}/status`, data),
 };
 
 export const adminAPI = {
   getAnalytics: () => api.get("/api/admin/analytics"),
-  getMapData: () => api.get("/api/admin/map/reports"),
 };
 
 export const chatAPI = {
