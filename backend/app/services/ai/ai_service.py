@@ -132,6 +132,14 @@ class AIService:
             "sla_issues": [],
         }
 
+    def generate_monthly_report(self, context: dict[str, Any]) -> dict[str, Any]:
+        result = self._run_json_prompt("monthly_report.md", context)
+        return result or {
+            "forecast": "Not enough complaint data to forecast next month reliably.",
+            "suggest_actions": [],
+            "category_breakdown": context.get("category_breakdown", {}),
+        }
+
     def answer_question(self, question: str) -> str:
         knowledge_base = load_prompt("../seed/barangay_info_mock.md")
         system_prompt = load_prompt("chatbot.md")

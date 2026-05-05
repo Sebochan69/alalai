@@ -7,9 +7,10 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db, require_admin
 from app.core.constants import REPORT_STATUSES
 from app.core.config import settings
-from app.db.db import Complaint, User
-from app.schemas.schemas import ReportOut, ReportStatusUpdate
+from app.db.db import Complaint, Report, User
+from app.schemas.schemas import MonthlyReportOut, ReportOut, ReportStatusUpdate
 from app.services.ai.ai_service import AIService
+from app.services.monthly_report_service import generate_monthly_report, report_to_dict
 from app.services.notification_service import create_notification
 from app.services.report_service import count_user_reports, find_possible_duplicate
 
@@ -153,6 +154,33 @@ def get_map_reports(
         }
         for report in reports
     ]
+
+
+@router.post("/monthly/{month}", response_model=MonthlyReportOut)
+def create_monthly_report(
+    month: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    try:
+        report = generate_monthly_report(db, month)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return report_to_dict(report)
+
+
+@router.get("/monthly/{month}", response_model=MonthlyReportOut)
+def get_monthly_report(
+    month: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    report = db.query(Report).filter(Report.month == month).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Monthly report not found")
+
+    return report_to_dict(report)
 
 
 @router.patch("/{report_id}/status", response_model=ReportOut)
