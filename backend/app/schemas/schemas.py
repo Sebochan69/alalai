@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserCreate(BaseModel):
@@ -52,6 +52,18 @@ class ReportOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MonthlyReportOut(BaseModel):
+    id: int
+    month: str
+    overall_complaint_count: int
+    overall_completion_rate: int
+    forecast: Optional[str] = None
+    suggest_actions: list[str] = Field(default_factory=list)
+    avg_solution_days: int
+    category_breakdown: dict[str, int] = Field(default_factory=dict)
+    created_at: datetime
 
 
 class ChatRequest(BaseModel):
