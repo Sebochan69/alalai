@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Float
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Float, Text, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime as datetime
@@ -42,7 +42,14 @@ class Complaint(Base):
     media = Column(String, nullable=True)
     tagging = Column(String, nullable=True)
     summary = Column(String, nullable=True)
+    location_area = Column(String, nullable=True)
+    dispatch_reason = Column(String, nullable=True)
+    ai_processed_complaint = Column(Text, nullable=True)
+    possible_duplicate_complaint_id = Column(Integer, nullable=True)
+    admin_comment = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+    date_resolved = Column(DateTime, nullable=True)
 
     # FOREIGN KEY: Points to the User who created the complaint
     user_id = Column(Integer, ForeignKey("users.id"))
@@ -77,3 +84,28 @@ class Comment(Base):
 
     complaint = relationship("Complaint", back_populates="comments")
     author = relationship("User", back_populates="comments")
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    title = Column(String)
+    message = Column(Text)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    role = Column(String)
+    content = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class BarangayInfo(Base):
+    __tablename__ = "barangay_info"
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String)
+    title = Column(String)
+    content = Column(Text)
+    updated_at = Column(DateTime, default=datetime.utcnow)
