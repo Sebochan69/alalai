@@ -1,8 +1,8 @@
-"""updated author into created_by
+"""fix relationship mapping
 
-Revision ID: 4e8c83877202
-Revises: 8b05d3d34115
-Create Date: 2026-05-04 22:22:23.955687
+Revision ID: c7425e7189b2
+Revises: 8d9495564039
+Create Date: 2026-05-06 00:15:55.740266
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '4e8c83877202'
-down_revision: Union[str, Sequence[str], None] = '8b05d3d34115'
+revision: str = 'c7425e7189b2'
+down_revision: Union[str, Sequence[str], None] = '8d9495564039'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
