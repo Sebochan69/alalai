@@ -1,0 +1,35 @@
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    APP_NAME: str = "AlalAI"
+    DEBUG: bool = True
+    ENVIRONMENT: str = "development"
+
+    DATABASE_URL: str = "sqlite:///./alalai.db"
+
+    SECRET_KEY: str = "change-this"
+    JWT_SECRET_KEY: str = "change-this"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    OPENAI_TEMPERATURE: float = 0
+
+    FRONTEND_URL: str = "http://localhost:5173"
+
+    MAX_REPORTS_PER_USER: int = 3
+    DUPLICATE_SIMILARITY_THRESHOLD: float = 0.82
+
+    DEFAULT_BARANGAY_LAT: float = 14.5995
+    DEFAULT_BARANGAY_LNG: float = 120.9842
+    DEFAULT_MAP_ZOOM: int = 15
+
+    UPLOAD_DIR: str = "uploads"
+
+    class Config:
+        env_file = ".env"
+
+
+settings = Settings()
