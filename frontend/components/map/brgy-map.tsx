@@ -7,26 +7,29 @@ export interface MapPin {
   lat: number;
   lng: number;
   title: string;
-  status: "pending" | "under-review" | "in-progress" | "resolved" | "closed";
+  status: "pending" | "in-progress" | "for-review" | "resolved";
   tagging: string;
   summary?: string;
 }
 
 const STATUS_COLOR: Record<string, string> = {
   pending: "#f59e0b",
-  "under-review": "#a855f7",
   "in-progress": "#3b82f6",
+  "for-review": "#a855f7",
   resolved: "#10b981",
-  closed: "#94a3b8",
 };
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Pending",
-  "under-review": "Under Review",
   "in-progress": "In Progress",
+  "for-review": "For Review",
   resolved: "Resolved",
-  closed: "Closed",
 };
+
+function isDarkMode() {
+  if (typeof window === "undefined") return false;
+  return document.documentElement.classList.contains("dark");
+}
 
 // [lng, lat] for MapLibre — matches mock data coordinates (Manila/Quiapo area)
 const BRGY_CENTER: [number, number] = [120.9842, 14.5997];
@@ -50,11 +53,13 @@ export function BrgyMapView({
       const { Map, Marker, NavigationControl, Popup } = maplibre;
 
       const key = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
-      const styleUrl = `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${key}`;
+      const dark = isDarkMode();
+      const getStyleUrl = (isDark: boolean) =>
+        `https://api.maptiler.com/maps/${isDark ? "streets-v2-dark" : "streets-v2"}/style.json?key=${key}`;
 
       const map = new Map({
         container: mapRef.current!,
-        style: styleUrl,
+        style: getStyleUrl(dark),
         center: BRGY_CENTER,
         zoom: BRGY_ZOOM,
         attributionControl: false,
@@ -125,6 +130,20 @@ export function BrgyMapView({
       });
 
       mapInstanceRef.current = map;
+
+      // Watch for theme changes and swap map style live
+      let lastDark = dark;
+      const observer = new MutationObserver(() => {
+        const nowDark = isDarkMode();
+        if (nowDark !== lastDark) {
+          lastDark = nowDark;
+          map.setStyle(getStyleUrl(nowDark));
+        }
+      });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
     });
 
     return () => {

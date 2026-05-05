@@ -7,20 +7,20 @@ import { createComplaint } from "@/lib/api";
 
 const AI_STEPS = [
   {
-    label: "Sending report to backend…",
-    detail: "Securely transmitting your report",
+    label: "Submitting your concern…",
+    detail: "Securely sending your report",
   },
   {
-    label: "AI reading & summarising…",
-    detail: "Natural language processing on FastAPI",
+    label: "Reading & understanding your concern…",
+    detail: "Our system is reviewing what you shared",
   },
   {
-    label: "Auto-tagging category & priority…",
-    detail: "AI classifies your concern type",
+    label: "Identifying the issue type & urgency…",
+    detail: "Classifying your concern for faster action",
   },
   {
-    label: "Routing to your zone admin…",
-    detail: "Assignment based on GPS location",
+    label: "Finding the right person to help…",
+    detail: "Routing your concern to the right barangay staff",
   },
 ];
 
@@ -125,11 +125,10 @@ export function FileConcernForm() {
     try {
       const complaint = await createComplaint({
         title: description.slice(0, 80),
-        tagging: "Other",
         location: address,
         description,
         lat: latitude ? parseFloat(latitude) : undefined,
-        lng: longitude ? parseFloat(longitude) : undefined,
+        long: longitude ? parseFloat(longitude) : undefined,
       });
       // Let AI animation finish before showing success
       await new Promise((r) => setTimeout(r, 2600));
@@ -174,10 +173,10 @@ export function FileConcernForm() {
               </motion.svg>
             </motion.div>
             <h2 className="text-xl font-black tracking-tight mb-1">
-              Backend AI Processing
+              Hang tight, we&apos;re on it!
             </h2>
             <p className="text-sm text-muted-foreground">
-              Your report is being handled by our FastAPI + AI pipeline
+              Your concern is being reviewed and assigned automatically
             </p>
           </div>
           {/* Steps */}

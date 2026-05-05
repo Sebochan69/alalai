@@ -51,7 +51,7 @@ export default function LandingPage() {
             </div>
             <div>
               <span className="font-extrabold text-base tracking-tight block leading-none">
-                alalAI
+                AlalAI
               </span>
               <span className="text-xs text-muted-foreground font-medium">
                 Brgy. Report System
@@ -92,7 +92,7 @@ export default function LandingPage() {
               <span className="text-accent">your barangay.</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              File concerns, track resolutions, and stay informed — alalAI
+              File concerns, track resolutions, and stay informed — AlalAI
               connects citizens directly with barangay officials, transparently
               and efficiently.
             </p>
@@ -223,7 +223,7 @@ export default function LandingPage() {
               Ready to make a difference?
             </h2>
             <p className="text-sm text-muted-foreground mb-7">
-              Join hundreds of residents already using alalAI to improve their
+              Join hundreds of residents already using AlalAI to improve their
               barangay.
             </p>
             <Link href="/register">
@@ -236,7 +236,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t border-border py-6 px-6 text-center text-xs text-muted-foreground bg-card">
-        © 2026 alalAI — Barangay Report Management System. All rights reserved.
+        © 2026 AlalAI — Barangay Report Management System. All rights reserved.
       </footer>
     </div>
   );

@@ -10,28 +10,23 @@ const STATUS: Record<string, { label: string; dot: string; badge: string }> = {
     badge:
       "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800",
   },
-  "under-review": {
-    label: "Under Review",
-    dot: "bg-violet-400",
-    badge:
-      "bg-violet-50 text-violet-600 border-violet-200 dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-800",
-  },
   "in-progress": {
     label: "In Progress",
     dot: "bg-blue-400",
     badge:
       "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800",
   },
+  "for-review": {
+    label: "For Review",
+    dot: "bg-violet-400",
+    badge:
+      "bg-violet-50 text-violet-600 border-violet-200 dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-800",
+  },
   resolved: {
     label: "Resolved",
     dot: "bg-emerald-400",
     badge:
       "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800",
-  },
-  closed: {
-    label: "Closed",
-    dot: "bg-muted-foreground",
-    badge: "bg-muted text-muted-foreground border-border",
   },
 };
 
@@ -150,11 +145,9 @@ export default async function CitizenDashboard() {
 
   const total = reports.length;
   const pending = reports.filter((r) => r.status === "pending").length;
-  const underReview = reports.filter((r) => r.status === "under-review").length;
+  const underReview = reports.filter((r) => r.status === "for-review").length;
   const inProgress = reports.filter((r) => r.status === "in-progress").length;
-  const resolved = reports.filter(
-    (r) => r.status === "resolved" || r.status === "closed",
-  ).length;
+  const resolved = reports.filter((r) => r.status === "resolved").length;
 
   const statCards = [
     {
@@ -168,9 +161,9 @@ export default async function CitizenDashboard() {
       num: "group-hover:text-amber-400",
     },
     {
-      label: "UNDER REVIEW",
+      label: "FOR REVIEW",
       value: underReview,
-      sub: "being assessed",
+      sub: "awaiting confirmation",
       circle: "bg-violet-600",
       icon: <IconSearch />,
       border: "border-violet-500/25 hover:border-violet-500/60",
@@ -200,9 +193,9 @@ export default async function CitizenDashboard() {
   ];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* ── Fixed header + stat cards ────────────────────────────────── */}
-      <div className="shrink-0 px-6 md:px-8 pt-6 pb-4">
+    <div className="flex flex-col px-6 md:px-8 py-6">
+      {/* ── Stat cards ────────────────────────────────────────────── */}
+      <div className="shrink-0 mb-6">
         {/* Page header */}
         <div className="flex items-center justify-between gap-4 mb-5">
           <div>
@@ -268,8 +261,8 @@ export default async function CitizenDashboard() {
         </div>
       </div>
 
-      {/* ── Reports section — fills remaining height, list scrolls ────── */}
-      <div className="flex-1 flex flex-col overflow-hidden px-6 md:px-8 pb-4">
+      {/* ── Reports section ─────────────────────────────────────────── */}
+      <div className="flex flex-col">
         {/* Section label */}
         <div className="shrink-0 mb-3">
           <p className="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">
@@ -285,7 +278,7 @@ export default async function CitizenDashboard() {
                 cls: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
               },
               {
-                label: "Under Review",
+                label: "For Review",
                 count: underReview,
                 active: false,
                 cls: "bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400",
@@ -318,8 +311,8 @@ export default async function CitizenDashboard() {
           </div>
         </div>
 
-        {/* Scrollable list */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+        {/* List */}
+        <div className="space-y-3 pr-1">
           {/* Empty state */}
           {reports.length === 0 && (
             <div className="bg-card border border-border rounded-2xl p-14 text-center shadow-sm">
@@ -351,7 +344,7 @@ export default async function CitizenDashboard() {
 
           {/* Report cards */}
           {reports.map((report) => {
-            const s = STATUS[report.status] ?? STATUS.closed;
+            const s = STATUS[report.status] ?? STATUS.resolved;
             const catIcon = CATEGORY_ICON[report.tagging] ?? "📋";
             const priorityCls = PRIORITY_COLOR[report.priority ?? "low"];
             return (
