@@ -34,8 +34,8 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
-app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
-app.include_router(chatbot.router, prefix="/api/chat", tags=["Chatbot"])
+# app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
+# app.include_router(chatbot.router, prefix="/api/chat", tags=["Chatbot"])
 app.include_router(notifications.router,
                    prefix="/api/notifications", tags=["Notifications"])
 app.include_router(

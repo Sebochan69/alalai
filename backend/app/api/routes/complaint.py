@@ -12,27 +12,27 @@ tagging_service = TaggingService()
 
 
 @router.post("/", response_model=dict)
-async def create_complaint(payload: dict = Body(..., example={
-    "user_id": 1,
-    "location": "Brgy. Central",
-    "long": 120.982,
-    "lat": 14.604,
-    "description": "Large pothole near market",
-    "media": "https://example.com/photo.jpg"
+async def create_complaint(payload: dict = Body(..., examples={
+    "example": {"value": {
+        "user_id": 1,
+        "location": "Brgy. Central",
+        "long": 120.982,
+        "lat": 14.604,
+        "description": "Large pothole near market",
+        "media": "https://example.com/photo.jpg"
+    }}
 }), db: Session = Depends(get_db)) -> Any:
     """Accepts a complaint payload, runs AI tagging, and returns merged result.
 
     Example request payload:
 
    {
-        "id": 123,
-        "user_id": 45,
-        "location": "Brgy. San Jose, Zone 3",
-        "long": 120.9824,
-        "lat": 14.6091,
-        "status": "Pending",
-        "description": "Large pothole on the main road near the market; vehicles swerve to avoid it, creating a safety hazard.",
-        "media": "https://example.com/media/pothole_123.jpg",
+        "user_id": 1,
+        "location": "Brgy. Central",
+        "long": 120.982,
+        "lat": 14.604,
+        "description": "Large pothole near market",
+        "media": "https://example.com/photo.jpg"
     }
 
     """
@@ -102,7 +102,7 @@ def get_all_complaints(db: Session = Depends(get_db)) -> Any:
 
 
 @router.get("/{complaint_id}", response_model=dict)
-def get_complaint(complaint_id: int = Path(..., example=123), db: Session = Depends(get_db)) -> Any:
+def get_complaint(complaint_id: int = Path(..., examples={"example": {"value": 123}}), db: Session = Depends(get_db)) -> Any:
     """Return a single complaint by id mapped to the expected payload shape."""
     r = db.query(Complaint).filter(Complaint.id == complaint_id).first()
     if not r:
@@ -158,14 +158,16 @@ def get_complaint(complaint_id: int = Path(..., example=123), db: Session = Depe
 
 
 @router.patch("/{complaint_id}", response_model=dict)
-def patch_complaint(complaint_id: int = Path(..., example=123), payload: dict = Body(..., example={
-    "location": "New location",
-    "long": 120.983,
-    "lat": 14.605,
-    "status": "In Progress",
-    "description": "Updated description",
-    "media": "https://example.com/updated.jpg",
-    "assigned_id": 2
+def patch_complaint(complaint_id: int = Path(..., examples={"example": {"value": 123}}), payload: dict = Body(..., examples={
+    "example": {"value": {
+        "location": "New location",
+        "long": 120.983,
+        "lat": 14.605,
+        "status": "In Progress",
+        "description": "Updated description",
+        "media": "https://example.com/updated.jpg",
+        "assigned_id": 2
+    }}
 }), db: Session = Depends(get_db)) -> Any:
     """Partially update a complaint (fields supported by the Complaint model).
 
@@ -254,9 +256,11 @@ def patch_complaint(complaint_id: int = Path(..., example=123), payload: dict = 
 
 
 @router.post("/{complaint_id}/comments", response_model=dict)
-def create_comment(complaint_id: int = Path(..., example=123), payload: dict = Body(..., example={
-    "content": "Please address this as soon as possible.",
-    "user_id": 1
+def create_comment(complaint_id: int = Path(..., examples={"example": {"value": 123}}), payload: dict = Body(..., examples={
+    "example": {"value": {
+        "content": "Please address this as soon as possible.",
+        "user_id": 1
+    }}
 }), db: Session = Depends(get_db)) -> Any:
     """Create a comment for a complaint.
 

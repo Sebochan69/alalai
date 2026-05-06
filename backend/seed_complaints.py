@@ -1,7 +1,7 @@
 from app.db import db as legacy_db
 from app.db.db import Complaint
 from app.db.session import SessionLocal
-from app.models.models import User
+from app.db.db import User
 from app.core.security import hash_password
 
 
@@ -12,12 +12,13 @@ def seed_complaints():
     db = SessionLocal()
 
     # create a user compatible with app.models.models.User (existing schema)
-    user = db.query(User).filter(User.email == "seed@alalai.test").first()
+    user = db.query(User).filter(
+        User.email_address == "seed@alalai.test").first()
     if not user:
         user = User(
             full_name="Seed User",
-            email="seed@alalai.test",
-            hashed_password=hash_password("password123"),
+            email_address="seed@alalai.test",
+            hashed_password="password123",
             role="citizen",
         )
         db.add(user)
