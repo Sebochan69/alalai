@@ -11,13 +11,13 @@ const STATUS: Record<string, { label: string; dot: string; badge: string }> = {
     dot: "bg-amber-400",
     badge: "bg-amber-500/12 text-amber-400 border-amber-500/25",
   },
-  "under-review": {
-    label: "Under Review",
+  "in-progress": {
+    label: "In Progress",
     dot: "bg-blue-400",
     badge: "bg-blue-500/12 text-blue-400 border-blue-500/25",
   },
-  "in-progress": {
-    label: "In Progress",
+  "for-review": {
+    label: "For Review",
     dot: "bg-violet-400",
     badge: "bg-violet-500/12 text-violet-400 border-violet-500/25",
   },
@@ -25,11 +25,6 @@ const STATUS: Record<string, { label: string; dot: string; badge: string }> = {
     label: "Resolved",
     dot: "bg-emerald-400",
     badge: "bg-emerald-500/12 text-emerald-400 border-emerald-500/25",
-  },
-  closed: {
-    label: "Closed",
-    dot: "bg-muted-foreground",
-    badge: "bg-muted text-muted-foreground border-border",
   },
 };
 

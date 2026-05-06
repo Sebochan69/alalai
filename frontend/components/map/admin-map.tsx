@@ -12,14 +12,14 @@ export interface AdminPin {
   location: string;
   citizenName?: string;
   priority?: string;
+  summary?: string;
 }
 
 const STATUS_COLOR: Record<string, string> = {
   pending: "#f59e0b",
-  "under-review": "#3b82f6",
   "in-progress": "#8b5cf6",
+  "for-review": "#3b82f6",
   resolved: "#10b981",
-  closed: "#94a3b8",
 };
 const PRIORITY_COLOR: Record<string, string> = {
   high: "#ef4444",

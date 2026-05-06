@@ -9,16 +9,24 @@ export default function RegisterPage() {
       <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
         <div className="max-w-6xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center text-white font-extrabold text-base shrink-0">A</div>
+            <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center text-white font-extrabold text-base shrink-0">
+              A
+            </div>
             <div>
-              <span className="font-extrabold text-base tracking-tight block leading-none">alalAI</span>
-              <span className="text-xs text-muted-foreground font-medium">Brgy. Report System</span>
+              <span className="font-extrabold text-base tracking-tight block leading-none">
+                AlalAI
+              </span>
+              <span className="text-xs text-muted-foreground font-medium">
+                Brgy. Report System
+              </span>
             </div>
           </Link>
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link href="/login">
-              <button className="h-9 px-4 rounded-xl border border-border text-sm font-semibold hover:bg-muted/50 transition-colors">Sign in</button>
+              <button className="h-9 px-4 rounded-xl border border-border text-sm font-semibold hover:bg-muted/50 transition-colors">
+                Sign in
+              </button>
             </Link>
           </div>
         </div>
@@ -30,7 +38,12 @@ export default function RegisterPage() {
           <RegisterForm />
           <p className="text-center text-xs text-muted-foreground mt-5">
             Already have an account?{" "}
-            <Link href="/login" className="text-accent font-bold hover:underline">Sign in</Link>
+            <Link
+              href="/login"
+              className="text-accent font-bold hover:underline"
+            >
+              Sign in
+            </Link>
           </p>
         </div>
       </div>

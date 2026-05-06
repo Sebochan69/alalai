@@ -7,26 +7,29 @@ export interface MapPin {
   lat: number;
   lng: number;
   title: string;
-  status: "pending" | "under-review" | "in-progress" | "resolved" | "closed";
+  status: "pending" | "in-progress" | "for-review" | "resolved";
   tagging: string;
   summary?: string;
 }
 
 const STATUS_COLOR: Record<string, string> = {
   pending: "#f59e0b",
-  "under-review": "#a855f7",
   "in-progress": "#3b82f6",
+  "for-review": "#a855f7",
   resolved: "#10b981",
-  closed: "#94a3b8",
 };
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Pending",
-  "under-review": "Under Review",
   "in-progress": "In Progress",
+  "for-review": "For Review",
   resolved: "Resolved",
-  closed: "Closed",
 };
+
+function isDarkMode() {
+  if (typeof window === "undefined") return false;
+  return document.documentElement.classList.contains("dark");
+}
 
 // [lng, lat] for MapLibre — matches mock data coordinates (Manila/Quiapo area)
 const BRGY_CENTER: [number, number] = [120.9842, 14.5997];
@@ -50,11 +53,13 @@ export function BrgyMapView({
       const { Map, Marker, NavigationControl, Popup } = maplibre;
 
       const key = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
-      const styleUrl = `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${key}`;
+      const dark = isDarkMode();
+      const getStyleUrl = (isDark: boolean) =>
+        `https://api.maptiler.com/maps/${isDark ? "streets-v2-dark" : "streets-v2"}/style.json?key=${key}`;
 
       const map = new Map({
         container: mapRef.current!,
-        style: styleUrl,
+        style: getStyleUrl(dark),
         center: BRGY_CENTER,
         zoom: BRGY_ZOOM,
         attributionControl: false,
@@ -67,6 +72,25 @@ export function BrgyMapView({
       );
 
       map.on("load", () => {
+        // Strip MapLibre's default white popup wrapper
+        if (!document.getElementById("brgy-popup-style")) {
+          const style = document.createElement("style");
+          style.id = "brgy-popup-style";
+          style.textContent = `
+            .brgy-popup .maplibregl-popup-content {
+              background: transparent;
+              border: none;
+              border-radius: 0;
+              padding: 0;
+              box-shadow: none;
+            }
+            .brgy-popup .maplibregl-popup-tip {
+              border-top-color: #161b27;
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
         // Barangay HQ marker
         const hqEl = document.createElement("div");
         hqEl.innerHTML = `<div style="width:32px;height:40px">
@@ -99,19 +123,38 @@ export function BrgyMapView({
           </div>`;
 
           const summaryHtml = pin.summary
-            ? `<div style="font-size:11px;color:#9ca3af;margin:5px 0 0;padding-top:5px;border-top:1px solid #374151;line-height:1.4">${pin.summary.length > 100 ? pin.summary.slice(0, 100) + "…" : pin.summary}</div>`
+            ? `<div style="font-size:11px;color:#94a3b8;line-height:1.5;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08)">${pin.summary.length > 110 ? pin.summary.slice(0, 110) + "…" : pin.summary}</div>`
             : "";
 
           const popup = new Popup({
-            offset: 12,
+            offset: 14,
             closeButton: false,
-            maxWidth: "260px",
+            maxWidth: "280px",
+            className: "brgy-popup",
           }).setHTML(
-            `<div style="font-family:system-ui,sans-serif;padding:2px 4px">
-              <div style="font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">${pin.tagging} · #${pin.id}</div>
-              <div style="font-size:12px;font-weight:700;color:#f9fafb;line-height:1.3;margin-bottom:5px">${pin.title}</div>
-              ${summaryHtml}
-              <span style="display:inline-block;margin-top:6px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;background:${color}33;color:${color};border:1px solid ${color}55">${label}</span>
+            `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;padding:0;margin:0">
+              <div style="background:linear-gradient(135deg,#1e2433 0%,#161b27 100%);border:1px solid rgba(255,255,255,0.1);border-radius:14px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.05)">
+                <!-- colour accent bar -->
+                <div style="height:3px;background:linear-gradient(90deg,${color},${color}88)"></div>
+                <div style="padding:12px 14px 13px">
+                  <!-- tag + id row -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+                    <span style="font-size:9.5px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:0.07em;background:${color}18;border:1px solid ${color}33;padding:2px 7px;border-radius:999px">${pin.tagging}</span>
+                    <span style="font-size:9px;color:#6b7280;font-weight:600;letter-spacing:0.03em">#${pin.id}</span>
+                  </div>
+                  <!-- title -->
+                  <div style="font-size:13px;font-weight:800;color:#f1f5f9;line-height:1.35;letter-spacing:-0.01em">${pin.title}</div>
+                  ${summaryHtml}
+                  <!-- footer row -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.07)">
+                    <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;background:${color}20;color:${color};border:1px solid ${color}40;letter-spacing:0.02em">${label}</span>
+                    <a href="/citizen/reports/${pin.id}" style="font-size:9px;color:#818cf8;display:flex;align-items:center;gap:4px;text-decoration:none;font-weight:600;transition:color 0.15s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#818cf8'">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      View report
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>`,
           );
 
@@ -125,6 +168,20 @@ export function BrgyMapView({
       });
 
       mapInstanceRef.current = map;
+
+      // Watch for theme changes and swap map style live
+      let lastDark = dark;
+      const observer = new MutationObserver(() => {
+        const nowDark = isDarkMode();
+        if (nowDark !== lastDark) {
+          lastDark = nowDark;
+          map.setStyle(getStyleUrl(nowDark));
+        }
+      });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
     });
 
     return () => {
