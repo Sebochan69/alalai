@@ -62,15 +62,15 @@ export interface Comment {
 // Maps to the `reports` table (AI-generated monthly summary)
 export interface MonthlyReport {
   id: string;
-  month: string; // datetime
+  month: string; // "YYYY-MM" or ISO datetime
   overall_complaint_count: number;
   overall_completion_rate: number; // percentage 0-100
   forecast: string;
-  suggest_actions: string;
+  suggest_actions: string[]; // array of action items
   avg_solution_days: number;
   // DB stores as JSON string — parsed to object by API layer
   category_breakdown: Record<string, number>;
-  created_at: string;
+  created_at?: string;
 }
 
 // --- Request DTOs -------------------------------------------------------------

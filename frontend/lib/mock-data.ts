@@ -199,20 +199,29 @@ export const MOCK_ADMIN_COMPLAINTS: Complaint[] = [
 
 export const MOCK_MONTHLY_REPORT: MonthlyReport = {
   id: "1",
-  month: "2026-04-01T00:00:00Z",
-  overall_complaint_count: 10,
-  overall_completion_rate: 70,
-  forecast: "Increase in infrastructure complaints expected in May.",
-  suggest_actions:
-    "Prioritize road repair teams; schedule canal cleanup for Purok 1.",
-  avg_solution_days: 4.2,
+  month: "2026-05",
+  overall_complaint_count: 12,
+  overall_completion_rate: 33,
+  forecast:
+    "Next month complaint volume may stay similar if current issues remain unresolved, with road-related and traffic-related concerns likely to continue leading. Trend confidence is low because the data covers only one month.",
+  suggest_actions: [
+    "Prioritize the 3 Road Maintenance complaints and the Traffic Signal and Traffic Enforcement cases, since these affect mobility and safety.",
+    "Follow up on the 8 unresolved cases weekly to raise the completion rate from 33%.",
+    "Schedule a waste and drainage inspection in affected areas to prevent secondary complaints from flooding, obstruction, and sanitation issues.",
+    "Coordinate with the utility and public safety teams for the electrical and high-priority safety reports, especially those still in review or in progress.",
+  ],
+  avg_solution_days: 2,
   category_breakdown: {
-    Infrastructure: 3,
-    Environment: 3,
-    Flooding: 1,
+    "Road Maintenance": 3,
+    Electrical: 1,
+    "Waste Management": 1,
+    Drainage: 1,
+    "Sidewalk Repair": 1,
+    "Traffic Enforcement": 1,
     "Public Safety": 1,
+    Obstruction: 1,
     "Noise Complaint": 1,
-    Other: 1,
+    "Traffic Signal": 1,
   },
-  created_at: "2026-05-01T00:00:00Z",
+  created_at: "2026-05-06T00:00:00Z",
 };
