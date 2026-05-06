@@ -1,17 +1,13 @@
 from pydantic import field_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 import os 
-from dotenv import load_dotenv
 from typing import List
-
-load_dotenv()
-
 class Settings(BaseSettings):
     APP_NAME: str = "AlalAI"
     DEBUG: bool = True
     ENVIRONMENT: str = "development"
 
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./alalai.db")
+    DATABASE_URL: str = "sqlite:///./alalai.db"
 
     SECRET_KEY: str = "change-this"
     JWT_SECRET_KEY: str = "change-this"
@@ -21,6 +17,9 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
     OPENAI_TEMPERATURE: float = 0
+
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
 
     FRONTEND_URL: str = "http://localhost:5173"
 
@@ -44,9 +43,11 @@ class Settings(BaseSettings):
             return False
         return value
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file=".env", 
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
 
 settings = Settings()
