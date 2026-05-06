@@ -18,6 +18,10 @@ from app.services.report_service import count_user_reports, find_possible_duplic
 router = APIRouter()
 
 
+def normalize_status(status: str | None) -> str:
+    return (status or "").strip().lower().replace("_", "-").replace(" ", "-")
+
+
 def complaint_to_report_out(complaint: Complaint) -> dict:
     return {
         "id": complaint.id,
@@ -32,7 +36,7 @@ def complaint_to_report_out(complaint: Complaint) -> dict:
         "dispatch_reason": complaint.dispatch_reason,
         "ai_processed_complaint": complaint.ai_processed_complaint,
         "possible_duplicate_report_id": complaint.possible_duplicate_complaint_id,
-        "status": complaint.status,
+        "status": normalize_status(complaint.status),
         "admin_comment": complaint.admin_comment,
         "created_at": complaint.created_at,
     }
@@ -85,7 +89,7 @@ async def file_report(
                 "active_reports": db.query(Complaint).filter(
                     Complaint.assigned_id == admin.id,
                     Complaint.status.in_(
-                        ["pending", "in progress", "for review"]),
+                        ["pending", "in-progress", "in progress", "for-review", "for review"]),
                 ).count(),
             }
             for admin in admins
@@ -213,10 +217,13 @@ def update_report_status(
 #     if payload.status not in REPORT_STATUSES:
 #         raise HTTPException(status_code=400, detail="Invalid report status")
 
+    current_status = normalize_status(report.status)
+    next_status = normalize_status(payload.status)
+
     if (current_user.role or "").lower() == "citizen" and report.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not allowed")
 
-    if (current_user.role or "").lower() == "citizen" and (report.status != "for review" or payload.status != "resolved"):
+    if (current_user.role or "").lower() == "citizen" and (current_status != "for-review" or next_status != "resolved"):
         raise HTTPException(
             status_code=403, detail="Citizens can only resolve reports that are for review")
 
@@ -224,13 +231,13 @@ def update_report_status(
         if report.assigned_id != current_user.id:
             raise HTTPException(
                 status_code=403, detail="Only the assigned admin can update this report")
-        if payload.status == "resolved":
+        if next_status == "resolved":
             raise HTTPException(
                 status_code=403, detail="Only citizens can mark reports as resolved")
 
-    report.status = payload.status
+    report.status = next_status
     report.updated_at = datetime.utcnow()
-    if payload.status == "resolved":
+    if next_status == "resolved":
         report.date_resolved = datetime.utcnow()
     if payload.admin_comment is not None:
         report.admin_comment = payload.admin_comment
@@ -238,7 +245,7 @@ def update_report_status(
     db.commit()
     db.refresh(report)
 
-    if report.status == "for review":
+    if report.status == "for-review":
         create_notification(
             db=db,
             user_id=report.user_id,
