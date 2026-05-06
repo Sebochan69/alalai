@@ -23,6 +23,7 @@ router = APIRouter()
 pwd_content = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -30,8 +31,10 @@ def get_db():
     finally:
         db.close()
 
+
 def verify_password(plain_password, hashed_password):
     return pwd_content.verify(plain_password, hashed_password)
+
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> TokenData:
     credentials_exception = HTTPException(
@@ -44,13 +47,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> TokenData:
         email: str = payload.get("sub")
         user_id: int = payload.get("id")
         role: str = payload.get("role")
-        
+
         if email is None or user_id is None:
             raise credentials_exception
-            
+
         return TokenData(email=email, user_id=user_id, role=role)
     except JWTError:
         raise credentials_exception
+
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -58,24 +62,26 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+
 @router.post("/login", response_model=Token)
 async def login(
-    username: str = Form(...), 
-    password: str = Form(...), 
+    username: str = Form(...),
+    password: str = Form(...),
     db: Session = Depends(get_db)
 ):
     user = db.query(User).filter(User.email_address == username).first()
-    
+
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
-    
+
     access_token = create_access_token(
         data={"sub": user.email_address, "id": user.id, "role": user.role}
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: TokenData = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -83,6 +89,7 @@ async def get_me(current_user: TokenData = Depends(get_current_user), db: Sessio
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
 
 @router.post("/logout")
 async def logout(current_user: TokenData = Depends(get_current_user)):

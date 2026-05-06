@@ -25,28 +25,18 @@ class AIService:
         ])
 
         chain = prompt | self.llm
-        response = chain.invoke({"input_json": json.dumps(variables, ensure_ascii=False)})
+        # Provide both a JSON blob and individual variables to support templates
+        payload = {"input_json": json.dumps(variables, ensure_ascii=False)}
+        # merge individual variables so ChatPromptTemplate can access named placeholders
+        if isinstance(variables, dict):
+            payload.update(variables)
+
+        response = chain.invoke(payload)
 
         try:
             return json.loads(response.content)
         except json.JSONDecodeError:
             return {}
-
-    def auto_tag_complaint(self, description: str, address: str) -> dict[str, Any]:
-        result = self._run_json_prompt(
-            "tagging.md",
-            {"description": description, "address": address},
-        )
-
-        tag = result.get("tag") if result.get("tag") in ALLOWED_TAGS else "other"
-        priority = result.get("priority") if result.get("priority") in PRIORITY_LEVELS else "medium"
-
-        return {
-            "tag": tag,
-            "priority": priority,
-            "location_area": result.get("location_area"),
-            "summary": result.get("summary") or description[:120],
-        }
 
     def auto_assign_admin(self, location_area: str | None, admins: list[dict[str, Any]]) -> dict[str, Any]:
         normalized_location = self._normalize_location(location_area)
@@ -76,7 +66,8 @@ class AIService:
                 used_location_match=bool(eligible_admins),
             )
         else:
-            reason = result.get("dispatch_reason", "AI-assisted assignment based on location and workload.")
+            reason = result.get(
+                "dispatch_reason", "AI-assisted assignment based on location and workload.")
 
         return {"admin_id": admin_id, "dispatch_reason": reason}
 
@@ -145,8 +136,10 @@ class AIService:
         system_prompt = load_prompt("chatbot.md")
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_prompt),
-            ("human", "Question: {question}\n\nKnowledge base:\n{knowledge_base}"),
+            ("human",
+             "Question: {question}\n\nKnowledge base:\n{knowledge_base}"),
         ])
         chain = prompt | self.llm
-        response = chain.invoke({"question": question, "knowledge_base": knowledge_base})
+        response = chain.invoke(
+            {"question": question, "knowledge_base": knowledge_base})
         return response.content
