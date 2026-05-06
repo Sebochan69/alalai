@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
+from passlib.exc import UnknownHashError
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -33,7 +34,10 @@ def get_db():
 
 
 def verify_password(plain_password, hashed_password):
-    return pwd_content.verify(plain_password, hashed_password)
+    try:
+        return pwd_content.verify(plain_password, hashed_password)
+    except UnknownHashError:
+        return False
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> TokenData:
