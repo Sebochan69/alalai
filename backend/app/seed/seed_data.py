@@ -1,30 +1,29 @@
 from app.core.security import hash_password
-from app.db.session import SessionLocal
-from app.models.models import User, BarangayInfo
+from app.db.db import SessionLocal, User, BarangayInfo
 
 
 def seed():
     db = SessionLocal()
 
-    if not db.query(User).filter(User.email == "admin.a@alalai.test").first():
+    if not db.query(User).filter(User.email_address == "admin.a@alalai.test").first():
         db.add_all([
             User(
-                full_name="Admin Zone A",
-                email="admin.a@alalai.test",
+                username="Admin Zone A",
+                email_address="admin.a@alalai.test",
                 hashed_password=hash_password("password123"),
                 role="admin",
-                assigned_locations="A,Zone 1,Purok 1",
+                location_assigned="A,Zone 1,Purok 1",
             ),
             User(
-                full_name="Admin Zone B",
-                email="admin.b@alalai.test",
+                username="Admin Zone B",
+                email_address="admin.b@alalai.test",
                 hashed_password=hash_password("password123"),
                 role="admin",
-                assigned_locations="B,Zone 2,Purok 2",
+                location_assigned="B,Zone 2,Purok 2",
             ),
             User(
-                full_name="Demo Citizen",
-                email="citizen@alalai.test",
+                username="Demo Citizen",
+                email_address="citizen@alalai.test",
                 hashed_password=hash_password("password123"),
                 role="citizen",
             ),

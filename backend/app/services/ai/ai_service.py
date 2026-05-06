@@ -25,35 +25,26 @@ class AIService:
         ])
 
         chain = prompt | self.llm
-        response = chain.invoke({"input_json": json.dumps(variables, ensure_ascii=False)})
+        # Provide both a JSON blob and individual variables to support templates
+        payload = {"input_json": json.dumps(variables, ensure_ascii=False)}
+        # merge individual variables so ChatPromptTemplate can access named placeholders
+        if isinstance(variables, dict):
+            payload.update(variables)
+
+        response = chain.invoke(payload)
 
         try:
             return json.loads(response.content)
         except json.JSONDecodeError:
             return {}
 
-    def auto_tag_complaint(self, description: str, address: str) -> dict[str, Any]:
-        result = self._run_json_prompt(
-            "tagging.md",
-            {"description": description, "address": address},
-        )
-
-        tag = result.get("tag") if result.get("tag") in ALLOWED_TAGS else "other"
-        priority = result.get("priority") if result.get("priority") in PRIORITY_LEVELS else "medium"
-
-        return {
-            "tag": tag,
-            "priority": priority,
-            "location_area": result.get("location_area"),
-            "summary": result.get("summary") or description[:120],
-        }
-
     def auto_assign_admin(self, location_area: str | None, admins: list[dict[str, Any]]) -> dict[str, Any]:
-        eligible_admins = []
-        for admin in admins:
-            assigned = [x.strip().lower() for x in (admin.get("assigned_locations") or "").split(",")]
-            if location_area and location_area.strip().lower() in assigned:
-                eligible_admins.append(admin)
+        normalized_location = self._normalize_location(location_area)
+        eligible_admins = [
+            admin
+            for admin in admins
+            if normalized_location and normalized_location in self._assigned_location_set(admin)
+        ]
 
         candidates = eligible_admins or admins
         if not candidates:
@@ -65,15 +56,60 @@ class AIService:
         )
 
         candidate_ids = {admin["id"] for admin in candidates}
-        admin_id = result.get("admin_id")
+        admin_id = self._normalize_admin_id(result.get("admin_id"))
         if admin_id not in candidate_ids:
-            least_loaded = sorted(candidates, key=lambda x: x.get("active_reports", 0))[0]
+            least_loaded = self._least_loaded_admin(candidates)
             admin_id = least_loaded["id"]
-            reason = "Fallback: assigned to eligible admin with least active workload."
+            reason = self._fallback_dispatch_reason(
+                admin=least_loaded,
+                location_area=location_area,
+                used_location_match=bool(eligible_admins),
+            )
         else:
-            reason = result.get("dispatch_reason", "AI-assisted assignment based on location and workload.")
+            reason = result.get(
+                "dispatch_reason", "AI-assisted assignment based on location and workload.")
 
         return {"admin_id": admin_id, "dispatch_reason": reason}
+
+    def _assigned_location_set(self, admin: dict[str, Any]) -> set[str]:
+        return {
+            self._normalize_location(location)
+            for location in (admin.get("assigned_locations") or "").split(",")
+            if self._normalize_location(location)
+        }
+
+    def _fallback_dispatch_reason(
+        self,
+        admin: dict[str, Any],
+        location_area: str | None,
+        used_location_match: bool,
+    ) -> str:
+        admin_name = admin.get("full_name") or f"Admin #{admin.get('id')}"
+        active_reports = admin.get("active_reports", 0)
+        if used_location_match:
+            return (
+                f"Fallback: assigned to {admin_name} because they cover {location_area} "
+                f"and have {active_reports} active report(s)."
+            )
+        return (
+            f"Fallback: assigned to {admin_name} because no location match was found "
+            f"and they have the lowest active workload ({active_reports})."
+        )
+
+    def _least_loaded_admin(self, admins: list[dict[str, Any]]) -> dict[str, Any]:
+        return sorted(admins, key=lambda admin: (admin.get("active_reports", 0), admin.get("id", 0)))[0]
+
+    def _normalize_admin_id(self, admin_id: Any) -> int | None:
+        if isinstance(admin_id, bool):
+            return None
+        if isinstance(admin_id, int):
+            return admin_id
+        if isinstance(admin_id, str) and admin_id.strip().isdigit():
+            return int(admin_id.strip())
+        return None
+
+    def _normalize_location(self, location: str | None) -> str:
+        return (location or "").strip().lower()
 
     def generate_analytics(self, reports: list[dict[str, Any]]) -> dict[str, Any]:
         result = self._run_json_prompt("analytics.md", {"reports": reports})
@@ -87,13 +123,23 @@ class AIService:
             "sla_issues": [],
         }
 
+    def generate_monthly_report(self, context: dict[str, Any]) -> dict[str, Any]:
+        result = self._run_json_prompt("monthly_report.md", context)
+        return result or {
+            "forecast": "Not enough complaint data to forecast next month reliably.",
+            "suggest_actions": [],
+            "category_breakdown": context.get("category_breakdown", {}),
+        }
+
     def answer_question(self, question: str) -> str:
         knowledge_base = load_prompt("../seed/barangay_info_mock.md")
         system_prompt = load_prompt("chatbot.md")
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_prompt),
-            ("human", "Question: {question}\n\nKnowledge base:\n{knowledge_base}"),
+            ("human",
+             "Question: {question}\n\nKnowledge base:\n{knowledge_base}"),
         ])
         chain = prompt | self.llm
-        response = chain.invoke({"question": question, "knowledge_base": knowledge_base})
+        response = chain.invoke(
+            {"question": question, "knowledge_base": knowledge_base})
         return response.content
