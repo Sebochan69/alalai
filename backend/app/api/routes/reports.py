@@ -107,9 +107,9 @@ async def file_report(
         status="pending",
     )
 
-#     db.add(report)
-#     db.commit()
-#     db.refresh(report)
+    db.add(report)
+    db.commit()
+    db.refresh(report)
 
     if report.assigned_id:
         create_notification(
@@ -227,8 +227,8 @@ def update_report_status(
     if payload.admin_comment is not None:
         report.admin_comment = payload.admin_comment
 
-#     db.commit()
-#     db.refresh(report)
+    db.commit()
+    db.refresh(report)
 
     if report.status == "for review":
         create_notification(

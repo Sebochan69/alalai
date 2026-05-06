@@ -21,13 +21,31 @@ def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
+    secrets = []
+    for secret in (settings.JWT_SECRET_KEY, settings.SECRET_KEY):
+        if secret and secret not in secrets:
+            secrets.append(secret)
+
     try:
-        payload = jwt.decode(
-            token,
-            settings.JWT_SECRET_KEY,
-            algorithms=[settings.JWT_ALGORITHM],
-        )
-        user_id = int(payload.get("sub"))
+        payload = None
+        for secret in secrets:
+            try:
+                payload = jwt.decode(
+                    token,
+                    secret,
+                    algorithms=[settings.JWT_ALGORITHM],
+                )
+                break
+            except JWTError:
+                continue
+
+        if payload is None:
+            raise JWTError()
+
+        user_id = payload.get("id") or payload.get("user_id")
+        if user_id is None:
+            user_id = payload.get("sub")
+        user_id = int(user_id)
     except (JWTError, TypeError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
