@@ -88,7 +88,7 @@ function MapSkeleton() {
       </svg>
 
       {/* shimmer */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 dark:via-white/[0.04] to-transparent animate-[shimmer_1.8s_ease-in-out_infinite] bg-[length:200%_100%]" />
+      <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 dark:via-white/4 to-transparent animate-[shimmer_1.8s_ease-in-out_infinite] bg-size-[200%_100%]" />
 
       {/* fake pins */}
       {[

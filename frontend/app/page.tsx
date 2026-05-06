@@ -157,12 +157,12 @@ export default function LandingPage() {
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <ThemeToggle />
             <Link href="/login">
-              <button className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl border border-border text-xs sm:text-sm font-semibold hover:bg-muted/50 transition-colors whitespace-nowrap">
+              <button className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl border border-border text-xs sm:text-sm font-semibold hover:bg-muted/50 transition-colors whitespace-nowrap cursor-pointer">
                 Sign In
               </button>
             </Link>
             <Link href="/register">
-              <button className="h-8 sm:h-9 px-3 sm:px-5 rounded-xl bg-accent text-white text-xs sm:text-sm font-bold hover:bg-accent/90 transition-all shadow-sm hover:shadow-md hover:shadow-accent/25 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap">
+              <button className="h-8 sm:h-9 px-3 sm:px-5 rounded-xl bg-accent text-white text-xs sm:text-sm font-bold hover:bg-accent/90 transition-all shadow-sm hover:shadow-md hover:shadow-accent/25 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap cursor-pointer">
                 Get Started
               </button>
             </Link>
@@ -464,7 +464,7 @@ export default function LandingPage() {
                   their barangay.
                 </p>
                 <Link href="/register">
-                  <button className="h-12 px-8 rounded-xl bg-accent text-white font-black text-sm hover:bg-accent/90 transition-all shadow-md shadow-accent/30 hover:shadow-lg hover:shadow-accent/40 hover:-translate-y-0.5 active:translate-y-0">
+                  <button className="h-12 px-8 rounded-xl bg-accent text-white font-black text-sm hover:bg-accent/90 transition-all shadow-md shadow-accent/30 hover:shadow-lg hover:shadow-accent/40 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
                     Create Your Account →
                   </button>
                 </Link>

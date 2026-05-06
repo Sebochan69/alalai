@@ -81,7 +81,7 @@ export interface CreateComplaintDto {
   // `long` and `lat` match BE field names (stored as str, sent as number)
   long?: number;
   lat?: number;
-  media?: string;
+  media?: File; // actual File object — sent as multipart/form-data to BE
 }
 
 export interface UpdateComplaintDto {

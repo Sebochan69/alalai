@@ -129,6 +129,7 @@ export function FileConcernForm() {
         description,
         lat: latitude ? parseFloat(latitude) : undefined,
         long: longitude ? parseFloat(longitude) : undefined,
+        media: imageFile ?? undefined,
       });
       // Let AI animation finish before showing success
       await new Promise((r) => setTimeout(r, 2600));
@@ -343,12 +344,12 @@ export function FileConcernForm() {
             </p>
             <div className="flex gap-3 w-full">
               <Link href="/citizen/dashboard" className="flex-1">
-                <button className="w-full h-11 rounded-xl border border-border text-sm font-semibold hover:bg-muted/50 transition-colors">
+                <button className="w-full h-11 rounded-xl border border-border text-sm font-semibold hover:bg-muted/50 transition-colors cursor-pointer">
                   Dashboard
                 </button>
               </Link>
               <Link href={`/citizen/reports/${submitted}`} className="flex-1">
-                <button className="w-full h-11 rounded-xl bg-accent text-white text-sm font-bold hover:bg-accent/90 transition-colors shadow-sm">
+                <button className="w-full h-11 rounded-xl bg-accent text-white text-sm font-bold hover:bg-accent/90 transition-colors shadow-sm cursor-pointer">
                   View Report
                 </button>
               </Link>
