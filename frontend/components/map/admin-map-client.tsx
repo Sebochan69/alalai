@@ -354,9 +354,11 @@ function PinInfoCard({
 export function AdminMapClient({
   pins,
   emptyState = false,
+  center,
 }: {
   pins: AdminPin[];
   emptyState?: boolean;
+  center?: [number, number];
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [cardPos, setCardPos] = useState<{ x: number; y: number } | null>(null);
@@ -619,6 +621,7 @@ export function AdminMapClient({
                 onPinClick={(id) => handlePinClick(id)}
                 onCardPos={(pos) => setCardPos(pos)}
                 onReady={() => setMapReady(true)}
+                center={center}
               />
               <AnimatePresence>
                 {!mapReady && (

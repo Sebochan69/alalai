@@ -3,12 +3,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime as datetime
 from sqlalchemy.orm import relationship
+from app.core.config import settings
 
-# 1. Define the SQLite connection URL
-DATABASE_URL = "sqlite:///./alalai.db"
+DATABASE_URL = settings.DATABASE_URL
 
-# 2. Create the engine and session factory
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # 3. Create the Base class for models
@@ -28,10 +31,8 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # RELATIONSHIPS:
-    complaints = relationship(
-        "Complaint", back_populates="created_by", foreign_keys="[Complaint.user_id]")
-    assigned_tasks = relationship(
-        "Complaint", back_populates="assigned_to", foreign_keys="[Complaint.assigned_id]")
+    complaints = relationship("Complaint", back_populates="created_by", foreign_keys="Complaint.user_id")
+    assigned_tasks = relationship("Complaint", back_populates="assigned_to", foreign_keys="Complaint.assigned_id")
     comments = relationship("Comment", back_populates="author")
 
 
@@ -53,7 +54,7 @@ class Complaint(Base):
     possible_duplicate_complaint_id = Column(Integer, nullable=True)
     admin_comment = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     date_resolved = Column(DateTime, nullable=True)
 
     # FOREIGN KEY: Points to the User who created the complaint
@@ -118,4 +119,4 @@ class BarangayInfo(Base):
     category = Column(String)
     title = Column(String)
     content = Column(Text)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

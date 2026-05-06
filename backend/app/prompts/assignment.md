@@ -25,7 +25,7 @@ Decision rules:
 Return JSON only. No markdown. No extra text.
 
 Required JSON shape:
-{
+{{
   "admin_id": 1,
   "dispatch_reason": "Assigned to Admin Zone A because they cover Zone 1 and have 2 active reports."
-}
+}}

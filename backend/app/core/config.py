@@ -1,6 +1,7 @@
-from pydantic_settings import BaseSettings
-
-
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+import os 
+from typing import List
 class Settings(BaseSettings):
     APP_NAME: str = "AlalAI"
     DEBUG: bool = True
@@ -17,7 +18,14 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = "gpt-4o-mini"
     OPENAI_TEMPERATURE: float = 0
 
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
+
     FRONTEND_URL: str = "http://localhost:5173"
+
+    @property
+    def ALLOWED_ORIGINS(self) -> List[str]:
+        return [origin.strip() for origin in self.FRONTEND_URL.split(",")]
 
     MAX_REPORTS_PER_USER: int = 3
     DUPLICATE_SIMILARITY_THRESHOLD: float = 0.82
@@ -28,8 +36,18 @@ class Settings(BaseSettings):
 
     UPLOAD_DIR: str = "uploads"
 
-    class Config:
-        env_file = ".env"
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def parse_debug(cls, value):
+        if isinstance(value, str) and value.lower() in {"release", "prod", "production"}:
+            return False
+        return value
+
+    model_config = SettingsConfigDict(
+        env_file=".env", 
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
 
 settings = Settings()
