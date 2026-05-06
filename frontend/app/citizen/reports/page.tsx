@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import { getMyComplaints } from "@/lib/api";
+import { getCategoryEmoji } from "@/lib/utils";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -46,18 +47,6 @@ const PRIORITY_CONFIG: Record<
   low: { label: "Low", color: "text-emerald-500", bg: "bg-emerald-500" },
 };
 
-const CATEGORY_EMOJI: Record<string, string> = {
-  Infrastructure: "🏗️",
-  Environment: "🌿",
-  "Public Safety": "🛡️",
-  Sanitation: "🗑️",
-  "Noise Complaint": "🔊",
-  "Illegal Construction": "🚧",
-  Flooding: "🌊",
-  "Animal Control": "🐕",
-  Other: "📋",
-};
-
 const STATUS_ORDER = ["pending", "in-progress", "for-review", "resolved"];
 
 function formatDate(iso: string) {
@@ -71,7 +60,9 @@ function formatDate(iso: string) {
 }
 
 function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
+  const date = new Date(iso);
+  if (!iso || isNaN(date.getTime())) return "Date unavailable";
+  const diff = Date.now() - date.getTime();
   const days = Math.floor(diff / 86400000);
   if (days === 0) return "Today";
   if (days === 1) return "Yesterday";
@@ -83,8 +74,6 @@ function timeAgo(iso: string) {
 // ─── Status progress bar ──────────────────────────────────────────────────────
 
 function StatusProgress({ status }: { status: string }) {
-  const idx = STATUS_ORDER.indexOf(status);
-  const active = idx >= 0 ? idx : 0;
   const steps = [
     { key: "pending", label: "Filed" },
     { key: "in-progress", label: "Action" },
@@ -130,8 +119,11 @@ function StatusProgress({ status }: { status: string }) {
 export default async function MyReportsPage() {
   const reports = await getMyComplaints();
   const sorted = [...reports].sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    (a, b) => {
+      const bTime = new Date(b.created_at).getTime();
+      const aTime = new Date(a.created_at).getTime();
+      return (isNaN(bTime) ? 0 : bTime) - (isNaN(aTime) ? 0 : aTime);
+    },
   );
 
   const counts = {
@@ -157,7 +149,7 @@ export default async function MyReportsPage() {
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
       {/* ── Header ────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex items-start justify-between gap-3 mb-6">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-widest text-accent mb-1">
             My Reports
@@ -167,8 +159,8 @@ export default async function MyReportsPage() {
             Track all your filed concerns and their progress.
           </p>
         </div>
-        <Link href="/citizen/file-concern">
-          <button className="shrink-0 flex items-center gap-1.5 bg-accent text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-accent/90 transition-all shadow-sm hover:shadow-md hover:shadow-accent/20 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+        <Link href="/citizen/file-concern" className="shrink-0">
+          <button className="flex h-9 sm:h-10 items-center gap-1.5 bg-accent text-white text-xs sm:text-sm font-bold px-3 sm:px-4 rounded-xl hover:bg-accent/90 transition-all shadow-sm hover:shadow-md hover:shadow-accent/20 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer whitespace-nowrap">
             <svg
               width="13"
               height="13"
@@ -182,7 +174,8 @@ export default async function MyReportsPage() {
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            New Report
+            <span className="sm:hidden">New</span>
+            <span className="hidden sm:inline">New Report</span>
           </button>
         </Link>
       </div>
@@ -261,9 +254,11 @@ export default async function MyReportsPage() {
       {/* ── Report cards ──────────────────────────────────────────────── */}
       <div className="space-y-4">
         {sorted.map((report) => {
-          const s = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.resolved;
-          const p = PRIORITY_CONFIG[report.priority ?? "low"];
-          const emoji = CATEGORY_EMOJI[report.tagging] ?? "📋";
+          const s = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.pending;
+          const p =
+            PRIORITY_CONFIG[report.priority ?? "medium"] ??
+            PRIORITY_CONFIG.medium;
+          const emoji = getCategoryEmoji(report.tagging);
           const isActive =
             report.status === "in-progress" || report.status === "for-review";
 

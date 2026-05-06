@@ -9,6 +9,7 @@ import { CloseReportButton } from "@/components/forms/close-report-button";
 import { MediaViewer } from "@/components/ui/media-viewer";
 import { ReportLocationMapClient } from "@/components/map/report-location-map-client";
 import type { Complaint, ReportStatus } from "@/lib/types";
+import { getCategoryEmoji } from "@/lib/utils";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -59,18 +60,6 @@ const PRIORITY_CONFIG: Record<string, { label: string; chip: string }> = {
     label: "Low",
     chip: "text-emerald-400 bg-emerald-500/10 border-emerald-500/25",
   },
-};
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  Infrastructure: "🏗️",
-  Environment: "🌿",
-  "Public Safety": "🛡️",
-  Sanitation: "🗑️",
-  "Noise Complaint": "🔊",
-  "Illegal Construction": "🚧",
-  Flooding: "🌊",
-  "Animal Control": "🐕",
-  Other: "📋",
 };
 
 const TIMELINE: { key: ReportStatus; label: string; desc: string }[] = [
@@ -179,7 +168,7 @@ export default function ReportDetailPage() {
 
   const s = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.pending;
   const p = report.priority ? (PRIORITY_CONFIG[report.priority] ?? null) : null;
-  const emoji = CATEGORY_EMOJI[report.tagging] ?? "📋";
+  const emoji = getCategoryEmoji(report.tagging);
   const currentIdx = STATUS_ORDER.indexOf(report.status as ReportStatus);
   const isActive =
     report.status === "in-progress" || report.status === "for-review";

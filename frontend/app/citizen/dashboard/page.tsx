@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import { getMyComplaints } from "@/lib/api";
+import { getCategoryEmoji } from "@/lib/utils";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -34,18 +35,6 @@ const PRIORITY_COLOR: Record<string, string> = {
   high: "text-red-500",
   medium: "text-amber-500",
   low: "text-emerald-500",
-};
-
-const CATEGORY_ICON: Record<string, string> = {
-  Infrastructure: "🏗️",
-  Environment: "🌿",
-  "Public Safety": "🛡️",
-  Sanitation: "🗑️",
-  "Noise Complaint": "🔊",
-  "Illegal Construction": "🚧",
-  Flooding: "🌊",
-  "Animal Control": "🐕",
-  Other: "📋",
 };
 
 function formatDate(iso: string) {
@@ -345,7 +334,7 @@ export default async function CitizenDashboard() {
           {/* Report cards */}
           {reports.map((report) => {
             const s = STATUS[report.status] ?? STATUS.resolved;
-            const catIcon = CATEGORY_ICON[report.tagging] ?? "📋";
+            const catIcon = getCategoryEmoji(report.tagging);
             const priorityCls = PRIORITY_COLOR[report.priority ?? "low"];
             return (
               <div

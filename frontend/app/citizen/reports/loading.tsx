@@ -2,52 +2,82 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MyReportsLoading() {
   return (
-    <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-5">
-      {/* Header */}
-      <div className="space-y-2">
-        <Skeleton className="h-7 w-40" />
-        <Skeleton className="h-4 w-56" />
-      </div>
-
-      {/* Progress bar */}
-      <div className="bg-card border border-border/60 rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-1.5">
-              <Skeleton className="w-7 h-7 rounded-full" />
-              <Skeleton className="h-2.5 w-14" />
-            </div>
-          ))}
+    <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-5 max-w-4xl">
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-3.5 w-24" />
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
         </div>
-        <Skeleton className="h-1.5 w-full rounded-full" />
+        <Skeleton className="h-10 w-32 rounded-xl shrink-0" />
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-20 rounded-xl" />
+      {/* Stats grid */}
+      <div className="grid grid-cols-4 gap-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="bg-card border border-border rounded-2xl p-3 text-center"
+          >
+            <Skeleton className="h-8 w-8 mx-auto rounded mb-1.5" />
+            <Skeleton className="h-3 w-16 mx-auto" />
+          </div>
+        ))}
+      </div>
+
+      {/* Tab chips */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {[80, 96, 88, 96, 80].map((w, i) => (
+          <Skeleton key={i} className="h-8 rounded-full" style={{ width: w }} />
         ))}
       </div>
 
       {/* Report cards */}
-      <div className="space-y-3">
-        {Array.from({ length: 6 }).map((_, i) => (
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="bg-card border border-border/60 rounded-2xl p-5 space-y-3"
+            className="bg-card border border-border/60 rounded-2xl overflow-hidden"
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-2 flex-1">
-                <Skeleton className="h-5 w-2/3" />
-                <Skeleton className="h-3 w-1/2" />
+            <div className="p-4">
+              <div className="flex items-start gap-3">
+                {/* Category icon circle */}
+                <Skeleton className="w-11 h-11 rounded-full shrink-0 mt-0.5" />
+
+                <div className="flex-1 min-w-0 space-y-2">
+                  {/* Top row: tag + badge */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1.5 flex-1">
+                      <Skeleton className="h-2.5 w-40" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                    <Skeleton className="h-6 w-20 rounded-full shrink-0" />
+                  </div>
+
+                  {/* Location */}
+                  <Skeleton className="h-3 w-1/2" />
+
+                  {/* Progress tracker dots */}
+                  <div className="flex items-center gap-1 pt-1">
+                    {Array.from({ length: 4 }).map((_, j) => (
+                      <div key={j} className="flex items-center gap-1">
+                        <Skeleton className="w-3 h-3 rounded-full" />
+                        {j < 3 && <Skeleton className="h-0.5 w-12" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <Skeleton className="h-6 w-24 rounded-full shrink-0" />
             </div>
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-4/5" />
-            <div className="flex gap-2 pt-1">
-              <Skeleton className="h-5 w-16 rounded-md" />
-              <Skeleton className="h-5 w-16 rounded-md" />
+
+            {/* Footer */}
+            <div className="border-t border-border/40 bg-muted/20 px-4 py-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-3 w-10" />
+              </div>
+              <Skeleton className="h-3 w-12" />
             </div>
           </div>
         ))}
