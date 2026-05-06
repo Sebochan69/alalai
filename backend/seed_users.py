@@ -19,28 +19,28 @@ def seed_data():
                 "username": "citizen_sebo",
                 "email": "smilebigsun@yahoo.com",
                 "password": get_password_hash("sebo123"),
-                "location": "Project 6",
+                "location": "Project 6, Quezon City",
                 "role": "Citizen"
             },
             {
                 "username": "admin_diane",
                 "email": "dianecoding@gmail.com",
                 "password": get_password_hash("diane123"),
-                "location": "Barangay 176",
+                "location": "Project 6, Quezon City",
                 "role": "Admin"
             },
             {
                 "username": "citizen_yughie",
                 "email": "yughiep@gmail.com",
                 "password": get_password_hash("yughie123"),
-                "location": "North Brgy",
+                "location": "Project 6, Quezon City",
                 "role": "Citizen"
             },
             {
                 "username": "admin_dan",
                 "email": "pelasod@gmail.com",
                 "password": get_password_hash("dan123"),
-                "location": "South Brgy",
+                "location": "Project 6, Quezon City",
                 "role": "Admin"
             }
         ]
