@@ -374,7 +374,10 @@ function MessageBubble({ msg }: { msg: Message }) {
         >
           {renderText(msg.text)}
         </div>
-        <span className="text-[10px] text-muted-foreground px-1">
+        <span
+          className="text-[10px] text-muted-foreground px-1"
+          suppressHydrationWarning
+        >
           {formatTime(msg.timestamp)}
         </span>
       </div>
@@ -382,18 +385,19 @@ function MessageBubble({ msg }: { msg: Message }) {
   );
 }
 
-const INITIAL_MESSAGE: Message = {
+const INITIAL_MESSAGE: Omit<Message, "timestamp"> & { timestamp?: Date } = {
   id: 0,
   role: "bot",
   text: "Mabuhay! I'm **Lingkod AI** - your barangay information assistant.\n\nI can answer questions about hotlines, evacuation centers, schedules, and barangay services. How can I help?",
-  timestamp: new Date(),
 };
 
 //  Main floating widget
 
 export default function CitizenChatWidget() {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>(() => [
+    { ...INITIAL_MESSAGE, timestamp: new Date() },
+  ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
