@@ -3,13 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.db.db import Base, engine
-from app.db.base import Base
 # from app.db.session import engine
-from app.api.routes import auth, reports, admin, chatbot, notifications, users
-from app.db.base import Base
+from app.api.routes import auth, reports, admin, chatbot, notifications, users, complaint
 from app.db.session import engine
 import app.db.db as legacy_db
-from app.api.routes import auth, reports, admin, chatbot, notifications, complaint
 
 Base.metadata.create_all(bind=engine)
 
