@@ -50,18 +50,18 @@ async def file_report(
     if (current_user.role or "").lower() != "citizen":
         raise HTTPException(status_code=403, detail="Only citizens can file reports")
 
-    if count_user_reports(db, current_user.id) >= settings.MAX_REPORTS_PER_USER:
-        raise HTTPException(status_code=400, detail=f"Maximum of {settings.MAX_REPORTS_PER_USER} reports reached")
+#     if count_user_reports(db, current_user.id) >= settings.MAX_REPORTS_PER_USER:
+#         raise HTTPException(status_code=400, detail=f"Maximum of {settings.MAX_REPORTS_PER_USER} reports reached")
 
-    ai = AIService()
-    tag_result = ai.auto_tag_complaint(description=description, address=address)
+#     ai = AIService()
+#     tag_result = ai.auto_tag_complaint(description=description, address=address)
 
-    duplicate_id = find_possible_duplicate(
-        db=db,
-        description=description,
-        address=address,
-        location_area=tag_result.get("location_area"),
-    )
+#     duplicate_id = find_possible_duplicate(
+#         db=db,
+#         description=description,
+#         address=address,
+#         location_area=tag_result.get("location_area"),
+#     )
 
     admins = db.query(User).filter(User.role.ilike("admin")).all()
     assignment = ai.auto_assign_admin(
@@ -102,9 +102,9 @@ async def file_report(
         status="pending",
     )
 
-    db.add(report)
-    db.commit()
-    db.refresh(report)
+#     db.add(report)
+#     db.commit()
+#     db.refresh(report)
 
     if report.assigned_id:
         create_notification(
@@ -194,8 +194,8 @@ def update_report_status(
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
 
-    if payload.status not in REPORT_STATUSES:
-        raise HTTPException(status_code=400, detail="Invalid report status")
+#     if payload.status not in REPORT_STATUSES:
+#         raise HTTPException(status_code=400, detail="Invalid report status")
 
     if (current_user.role or "").lower() == "citizen" and report.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not allowed")
@@ -216,8 +216,8 @@ def update_report_status(
     if payload.admin_comment is not None:
         report.admin_comment = payload.admin_comment
 
-    db.commit()
-    db.refresh(report)
+#     db.commit()
+#     db.refresh(report)
 
     if report.status == "for review":
         create_notification(

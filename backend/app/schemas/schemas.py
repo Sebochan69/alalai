@@ -1,24 +1,29 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
-
-class UserCreate(BaseModel):
-    full_name: str
+class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-
-class AuthResponse(BaseModel):
+class Token(BaseModel):
     access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[EmailStr] = None
+    user_id: Optional[int] = None
+    role: Optional[str] = None
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email_address: EmailStr
     role: str
-    user_id: int
-    full_name: str
+    location_assigned: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 
 class ReportBase(BaseModel):
