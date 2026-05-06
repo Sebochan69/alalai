@@ -3,9 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// ─── Iconss ────────────────────────────────────────────────────────────────────
+// ─── Icons ────────────────────────────────────────────────────────────────────
 
 const NAV_ICONS = {
+  chat: (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      <path d="M9.5 9h.01" />
+      <path d="M12.5 9h.01" />
+      <path d="M15.5 9h.01" />
+    </svg>
+  ),
   dashboard: (
     <svg
       width="16"

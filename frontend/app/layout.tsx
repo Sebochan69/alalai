@@ -29,7 +29,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://api.maptiler.com" />
         <link rel="dns-prefetch" href="https://api.maptiler.com" />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground antialiased">
+      <body
+        className="min-h-full flex flex-col bg-background text-foreground antialiased"
+        suppressHydrationWarning
+      >
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

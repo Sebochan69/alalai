@@ -24,7 +24,7 @@ export default function RegisterPage() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link href="/login">
-              <button className="h-9 px-4 rounded-xl border border-border text-sm font-semibold hover:bg-muted/50 transition-colors">
+              <button className="h-9 px-4 rounded-xl border border-border text-sm font-semibold hover:bg-muted/50 transition-colors cursor-pointer">
                 Sign in
               </button>
             </Link>

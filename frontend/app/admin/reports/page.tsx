@@ -155,7 +155,7 @@ export default async function AdminReportsPage() {
           </p>
         </div>
         <Link href="/admin/map">
-          <button className="h-9 px-3.5 rounded-xl border border-border text-muted-foreground text-sm font-semibold hover:bg-muted/60 hover:text-foreground transition-colors flex items-center gap-1.5 shrink-0">
+          <button className="h-9 px-3.5 rounded-xl border border-border text-muted-foreground text-sm font-semibold hover:bg-muted/60 hover:text-foreground transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer">
             <svg
               width="13"
               height="13"

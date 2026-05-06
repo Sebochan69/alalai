@@ -187,7 +187,7 @@ export default async function AdminDashboard() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Link href="/admin/map">
-            <button className="h-9 px-3.5 rounded-xl border border-border text-muted-foreground text-sm font-semibold hover:bg-muted/60 hover:text-foreground transition-colors flex items-center gap-1.5">
+            <button className="h-9 px-3.5 rounded-xl border border-border text-muted-foreground text-sm font-semibold hover:bg-muted/60 hover:text-foreground transition-colors flex items-center gap-1.5 cursor-pointer">
               <svg
                 width="13"
                 height="13"
@@ -206,7 +206,7 @@ export default async function AdminDashboard() {
             </button>
           </Link>
           <Link href="/admin/monthly-report">
-            <button className="h-9 px-3.5 rounded-xl border border-violet-500/30 text-violet-500 dark:text-violet-400 text-sm font-semibold hover:bg-violet-500/8 transition-colors flex items-center gap-1.5">
+            <button className="h-9 px-3.5 rounded-xl border border-violet-500/30 text-violet-500 dark:text-violet-400 text-sm font-semibold hover:bg-violet-500/8 transition-colors flex items-center gap-1.5 cursor-pointer">
               <svg
                 width="13"
                 height="13"
