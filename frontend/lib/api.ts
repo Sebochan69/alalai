@@ -110,7 +110,7 @@ export async function createComplaint(
     description: dto.description,
     tagging: "", // set by AI after creation
     priority: "medium", // set by AI after creation
-    media: dto.media,
+    media: dto.media ? URL.createObjectURL(dto.media) : undefined,
     status: "pending",
     created_at: now,
     updated_at: now,

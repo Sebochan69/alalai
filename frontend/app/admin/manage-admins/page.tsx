@@ -104,7 +104,7 @@
       </div>
 
       {/* Add admin CTA */}
-      <button className="mt-5 w-full flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border p-4 text-sm text-muted-foreground hover:border-violet-500/30 hover:text-violet-500 dark:hover:text-violet-400 transition-colors group">
+      <button className="mt-5 w-full flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border p-4 text-sm text-muted-foreground hover:border-violet-500/30 hover:text-violet-500 dark:hover:text-violet-400 transition-colors group cursor-pointer">
         <svg
           width="16"
           height="16"
