@@ -414,12 +414,12 @@ export default async function CitizenReportDetailPage({
       {/* ── Bottom nav ────────────────────────────────────────────────── */}
       <div className="flex gap-3 pt-2">
         <Link href="/citizen/reports" className="flex-1">
-          <button className="w-full h-11 rounded-xl border border-border text-sm font-semibold hover:bg-muted/40 transition-colors">
+          <button className="w-full h-11 rounded-xl border border-border text-sm font-semibold hover:bg-muted/40 transition-colors cursor-pointer">
             ← All Reports
           </button>
         </Link>
         <Link href="/citizen/dashboard" className="flex-1">
-          <button className="w-full h-11 rounded-xl border border-border text-sm font-semibold hover:bg-muted/40 transition-colors">
+          <button className="w-full h-11 rounded-xl border border-border text-sm font-semibold hover:bg-muted/40 transition-colors cursor-pointer">
             Dashboard
           </button>
         </Link>

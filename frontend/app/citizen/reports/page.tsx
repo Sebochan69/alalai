@@ -168,7 +168,7 @@ export default async function MyReportsPage() {
           </p>
         </div>
         <Link href="/citizen/file-concern">
-          <button className="shrink-0 flex items-center gap-1.5 bg-accent text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-accent/90 transition-all shadow-sm hover:shadow-md hover:shadow-accent/20 hover:-translate-y-0.5 active:translate-y-0">
+          <button className="shrink-0 flex items-center gap-1.5 bg-accent text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-accent/90 transition-all shadow-sm hover:shadow-md hover:shadow-accent/20 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
             <svg
               width="13"
               height="13"
@@ -251,7 +251,7 @@ export default async function MyReportsPage() {
             Your filed concerns will appear here.
           </p>
           <Link href="/citizen/file-concern">
-            <button className="bg-accent text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-accent/90 transition-colors">
+            <button className="bg-accent text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-accent/90 transition-colors cursor-pointer">
               File a Concern
             </button>
           </Link>

@@ -5,6 +5,7 @@ import {
   CitizenMobileNavLinks,
 } from "@/components/citizen-sidebar-nav";
 import { getMyComplaints } from "@/lib/api";
+import CitizenChatWidget from "@/components/citizen-chat-widget";
 
 export default async function CitizenLayout({
   children,
@@ -32,6 +33,7 @@ export default async function CitizenLayout({
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
       </div>
       <CitizenMobileNav />
+      <CitizenChatWidget />
     </div>
   );
 }
@@ -93,7 +95,7 @@ function CitizenSidebar({
       {/* Bottom section */}
       <div className="shrink-0 px-4 pb-5 space-y-2">
         {/* Live stats card */}
-        <div className="relative rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 dark:from-accent/15 dark:via-accent/8 dark:to-transparent border border-blue-200 dark:border-accent/25 px-4 py-3 overflow-hidden">
+        <div className="relative rounded-2xl bg-linear-to-br from-blue-100 to-blue-50 dark:from-accent/15 dark:via-accent/8 dark:to-transparent border border-blue-200 dark:border-accent/25 px-4 py-3 overflow-hidden">
           <div className="absolute top-0 right-0 w-10 h-10 bg-accent/10 rounded-full -translate-y-2 translate-x-2 pointer-events-none" />
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">

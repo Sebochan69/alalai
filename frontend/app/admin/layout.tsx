@@ -96,7 +96,7 @@ function AdminSidebar({
       </div>
       {/* Bottom stats + sign out */}
       <div className="shrink-0 px-4 pb-5 space-y-3">
-        <div className="relative rounded-2xl bg-gradient-to-br from-violet-100 to-violet-50 dark:from-violet-600/20 dark:via-violet-500/10 dark:to-transparent border border-violet-200 dark:border-violet-500/25 p-4 overflow-hidden">
+        <div className="relative rounded-2xl bg-linear-to-br from-violet-100 to-violet-50 dark:from-violet-600/20 dark:via-violet-500/10 dark:to-transparent border border-violet-200 dark:border-violet-500/25 p-4 overflow-hidden">
           <div className="absolute top-0 right-0 w-16 h-16 bg-violet-500/10 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
           <div className="flex items-center gap-2 mb-4">
             <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center shrink-0 shadow shadow-violet-500/30">

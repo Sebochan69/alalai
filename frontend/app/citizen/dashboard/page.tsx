@@ -211,7 +211,7 @@ export default async function CitizenDashboard() {
               {today()}
             </span>
             <Link href="/citizen/file-concern">
-              <button className="flex items-center gap-1.5 bg-accent text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-accent/90 transition-colors shadow-sm">
+              <button className="flex items-center gap-1.5 bg-accent text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-accent/90 transition-colors shadow-sm cursor-pointer">
                 <svg
                   width="13"
                   height="13"
@@ -335,7 +335,7 @@ export default async function CitizenDashboard() {
                 Be the first to raise a concern in your barangay.
               </p>
               <Link href="/citizen/file-concern">
-                <button className="bg-accent text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-accent/90 transition-colors">
+                <button className="bg-accent text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-accent/90 transition-colors cursor-pointer">
                   File a Concern
                 </button>
               </Link>
