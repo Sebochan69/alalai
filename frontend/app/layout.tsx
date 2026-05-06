@@ -10,7 +10,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "alalAI – Barangay Report System",
+  title: "AlalAI – Barangay Report System",
   description: "File and track barangay complaints and concerns online.",
 };
 
