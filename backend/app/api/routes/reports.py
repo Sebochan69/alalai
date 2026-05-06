@@ -9,6 +9,7 @@ from app.core.constants import REPORT_STATUSES
 from app.core.config import settings
 from app.db.db import Complaint, Report, User
 from app.schemas.schemas import MonthlyReportOut, ReportOut, ReportStatusUpdate
+from app.services.ai.ai_tagging import AITaggingService
 from app.services.ai.ai_service import AIService
 from app.services.monthly_report_service import generate_monthly_report, report_to_dict
 from app.services.notification_service import create_notification
@@ -56,8 +57,15 @@ async def file_report(
             status_code=400, detail=f"Maximum of {settings.MAX_REPORTS_PER_USER} reports reached")
 
     ai = AIService()
-    tag_result = ai.auto_tag_complaint(
-        description=description, address=address)
+    tagging = AITaggingService()
+    tag_result_model = await tagging.auto_tag_complaint(
+        description=description, location=address)
+    tag_result = {
+        "tag": tag_result_model.tagging,
+        "priority": tag_result_model.priority,
+        "summary": tag_result_model.summary,
+        "location_area": None,
+    }
 
     duplicate_id = find_possible_duplicate(
         db=db,
@@ -107,9 +115,9 @@ async def file_report(
         status="pending",
     )
 
-#     db.add(report)
-#     db.commit()
-#     db.refresh(report)
+    db.add(report)
+    db.commit()
+    db.refresh(report)
 
     if report.assigned_id:
         create_notification(
@@ -227,8 +235,8 @@ def update_report_status(
     if payload.admin_comment is not None:
         report.admin_comment = payload.admin_comment
 
-#     db.commit()
-#     db.refresh(report)
+    db.commit()
+    db.refresh(report)
 
     if report.status == "for review":
         create_notification(
