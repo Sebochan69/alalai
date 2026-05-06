@@ -1,156 +1,66 @@
-from sqlalchemy.orm import Session
-import random
+from app.db import db as legacy_db
+from app.db.db import Complaint
+from app.db.session import SessionLocal
+from app.models.models import User
+from app.core.security import hash_password
 
-from app.db.db import SessionLocal, engine, User, Complaint, Comment, Base
 
+def seed_complaints():
+    # ensure legacy tables exist
+    legacy_db.Base.metadata.create_all(bind=legacy_db.engine)
 
-def seed_data():
-    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
 
-    db: Session = SessionLocal()
+    # create a user compatible with app.models.models.User (existing schema)
+    user = db.query(User).filter(User.email == "seed@alalai.test").first()
+    if not user:
+        user = User(
+            full_name="Seed User",
+            email="seed@alalai.test",
+            hashed_password=hash_password("password123"),
+            role="citizen",
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
-    try:
-        # Get existing admin
-        admin_user = db.query(User).filter(User.role == "Admin").first()
-
-        if not admin_user:
-            print("No admin found. Please create an admin user first.")
-            return
-
-        # Get existing citizens
-        citizens = db.query(User).filter(User.role == "Citizen").all()
-
-        if not citizens:
-            print("No citizens found. Please create citizen users first.")
-            return
-
-        statuses = ["Pending", "In Progress", "For Review", "Closed"]
-
-        complaints_data = [
-            {
-                "location": "123 Main St",
-                "long": 121.05,
-                "lat": 14.58,
-                "description": "Large pothole blocking the lane.",
-                "priority": "High",
-                "tagging": "Road Maintenance",
-            },
-            {
-                "location": "45 Mabini Ave",
-                "long": 121.04,
-                "lat": 14.57,
-                "description": "Streetlight not working for three nights.",
-                "priority": "Medium",
-                "tagging": "Electrical",
-            },
-            {
-                "location": "88 Rizal St",
-                "long": 121.06,
-                "lat": 14.59,
-                "description": "Garbage pile not collected.",
-                "priority": "Low",
-                "tagging": "Waste Management",
-            },
-            {
-                "location": "12 Bonifacio Road",
-                "long": 121.03,
-                "lat": 14.56,
-                "description": "Flooding near drainage canal.",
-                "priority": "High",
-                "tagging": "Drainage",
-            },
-            {
-                "location": "77 Luna Street",
-                "long": 121.07,
-                "lat": 14.60,
-                "description": "Damaged sidewalk causing trip hazard.",
-                "priority": "Medium",
-                "tagging": "Sidewalk Repair",
-            },
-            {
-                "location": "19 Aguinaldo Highway",
-                "long": 121.08,
-                "lat": 14.61,
-                "description": "Illegal parking blocking traffic flow.",
-                "priority": "Medium",
-                "tagging": "Traffic Enforcement",
-            },
-            {
-                "location": "32 Katipunan Ave",
-                "long": 121.09,
-                "lat": 14.62,
-                "description": "Open manhole cover near pedestrian area.",
-                "priority": "High",
-                "tagging": "Public Safety",
-            },
-            {
-                "location": "54 Quezon Blvd",
-                "long": 121.02,
-                "lat": 14.55,
-                "description": "Tree branch blocking road signage.",
-                "priority": "Low",
-                "tagging": "Obstruction",
-            },
-            {
-                "location": "101 Sampaguita St",
-                "long": 121.01,
-                "lat": 14.54,
-                "description": "Noise complaint from construction activity.",
-                "priority": "Low",
-                "tagging": "Noise Complaint",
-            },
-            {
-                "location": "66 Narra Road",
-                "long": 121.10,
-                "lat": 14.63,
-                "description": "Broken traffic signal at intersection.",
-                "priority": "High",
-                "tagging": "Traffic Signal",
-            },
+    # create sample complaints (only if not already present)
+    existing = db.query(Complaint).filter(Complaint.description ==
+                                          "Large pile of garbage blocking the alley and causing odor; attracts stray dogs.").first()
+    if not existing:
+        samples = [
+            Complaint(
+                location="Purok 4, Brgy. San Isidro, Main St.",
+                long=120.9842,
+                lat=14.5995,
+                status="Pending",
+                description="Large pile of garbage blocking the alley and causing odor; attracts stray dogs.",
+                priority="High",
+                media="https://example.com/uploads/garbage-pile.jpg",
+                tagging="garbage",
+                summary="Garbage pile blocking alley",
+                user_id=user.id,
+            ),
+            Complaint(
+                location="Market Road near Block B",
+                long=120.9855,
+                lat=14.6002,
+                status="Pending",
+                description="Streetlight not functioning for several nights.",
+                priority="Medium",
+                media=None,
+                tagging="street_light",
+                summary="Broken streetlight",
+                user_id=user.id,
+            ),
         ]
 
-        for index, data in enumerate(complaints_data):
-            citizen_user = citizens[index % len(citizens)]
+        db.add_all(samples)
+        db.commit()
 
-            new_complaint = Complaint(
-                location=data["location"],
-                long=data["long"],
-                lat=data["lat"],
-                status=random.choice(statuses),
-                description=data["description"],
-                priority=data["priority"],
-                tagging=data["tagging"],
-                user_id=citizen_user.id,
-                assigned_id=admin_user.id
-            )
-
-            db.add(new_complaint)
-            db.commit()
-            db.refresh(new_complaint)
-
-            print(
-                f"Complaint created by {citizen_user.username} "
-                f"and assigned to {admin_user.username} "
-                f"with status {new_complaint.status}"
-            )
-
-            new_comment = Comment(
-                content="Complaint received and is now under initial review.",
-                complaint_id=new_complaint.id,
-                user_id=admin_user.id
-            )
-
-            db.add(new_comment)
-            db.commit()
-
-        print("10 complaints added successfully.")
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        db.rollback()
-    finally:
-        db.close()
+    db.close()
+    print("Seeded complaints (if they did not already exist)")
 
 
 if __name__ == "__main__":
-    seed_data()
+    seed_complaints()

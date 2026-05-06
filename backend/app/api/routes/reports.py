@@ -48,20 +48,23 @@ async def file_report(
     current_user: User = Depends(get_current_user),
 ):
     if (current_user.role or "").lower() != "citizen":
-        raise HTTPException(status_code=403, detail="Only citizens can file reports")
+        raise HTTPException(
+            status_code=403, detail="Only citizens can file reports")
 
-#     if count_user_reports(db, current_user.id) >= settings.MAX_REPORTS_PER_USER:
-#         raise HTTPException(status_code=400, detail=f"Maximum of {settings.MAX_REPORTS_PER_USER} reports reached")
+    if count_user_reports(db, current_user.id) >= settings.MAX_REPORTS_PER_USER:
+        raise HTTPException(
+            status_code=400, detail=f"Maximum of {settings.MAX_REPORTS_PER_USER} reports reached")
 
-#     ai = AIService()
-#     tag_result = ai.auto_tag_complaint(description=description, address=address)
+    ai = AIService()
+    tag_result = ai.auto_tag_complaint(
+        description=description, address=address)
 
-#     duplicate_id = find_possible_duplicate(
-#         db=db,
-#         description=description,
-#         address=address,
-#         location_area=tag_result.get("location_area"),
-#     )
+    duplicate_id = find_possible_duplicate(
+        db=db,
+        description=description,
+        address=address,
+        location_area=tag_result.get("location_area"),
+    )
 
     admins = db.query(User).filter(User.role.ilike("admin")).all()
     assignment = ai.auto_assign_admin(
@@ -73,7 +76,8 @@ async def file_report(
                 "assigned_locations": admin.location_assigned,
                 "active_reports": db.query(Complaint).filter(
                     Complaint.assigned_id == admin.id,
-                    Complaint.status.in_(["pending", "in progress", "for review"]),
+                    Complaint.status.in_(
+                        ["pending", "in progress", "for review"]),
                 ).count(),
             }
             for admin in admins
@@ -97,7 +101,8 @@ async def file_report(
         summary=tag_result.get("summary"),
         priority=tag_result.get("priority"),
         dispatch_reason=assignment.get("dispatch_reason"),
-        ai_processed_complaint=json.dumps(ai_processed_complaint, ensure_ascii=False),
+        ai_processed_complaint=json.dumps(
+            ai_processed_complaint, ensure_ascii=False),
         possible_duplicate_complaint_id=duplicate_id,
         status="pending",
     )
@@ -122,7 +127,8 @@ def get_my_reports(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    complaints = db.query(Complaint).filter(Complaint.user_id == current_user.id).order_by(Complaint.created_at.desc()).all()
+    complaints = db.query(Complaint).filter(
+        Complaint.user_id == current_user.id).order_by(Complaint.created_at.desc()).all()
     return [complaint_to_report_out(complaint) for complaint in complaints]
 
 
@@ -131,7 +137,8 @@ def get_assigned_reports(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
 ):
-    complaints = db.query(Complaint).filter(Complaint.assigned_id == current_user.id).order_by(Complaint.created_at.desc()).all()
+    complaints = db.query(Complaint).filter(
+        Complaint.assigned_id == current_user.id).order_by(Complaint.created_at.desc()).all()
     return [complaint_to_report_out(complaint) for complaint in complaints]
 
 
@@ -140,7 +147,8 @@ def get_map_reports(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    reports = db.query(Complaint).filter(Complaint.lat.isnot(None), Complaint.long.isnot(None)).all()
+    reports = db.query(Complaint).filter(
+        Complaint.lat.isnot(None), Complaint.long.isnot(None)).all()
     return [
         {
             "id": report.id,
@@ -201,13 +209,16 @@ def update_report_status(
         raise HTTPException(status_code=403, detail="Not allowed")
 
     if (current_user.role or "").lower() == "citizen" and (report.status != "for review" or payload.status != "resolved"):
-        raise HTTPException(status_code=403, detail="Citizens can only resolve reports that are for review")
+        raise HTTPException(
+            status_code=403, detail="Citizens can only resolve reports that are for review")
 
     if (current_user.role or "").lower() == "admin":
         if report.assigned_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Only the assigned admin can update this report")
+            raise HTTPException(
+                status_code=403, detail="Only the assigned admin can update this report")
         if payload.status == "resolved":
-            raise HTTPException(status_code=403, detail="Only citizens can mark reports as resolved")
+            raise HTTPException(
+                status_code=403, detail="Only citizens can mark reports as resolved")
 
     report.status = payload.status
     report.updated_at = datetime.utcnow()
