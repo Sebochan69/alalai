@@ -24,7 +24,8 @@ def find_possible_duplicate(
     - geospatial distance
     - same active status only
     """
-    active_reports = db.query(Complaint).filter(Complaint.status.in_(["pending", "in progress", "for review"])).all()
+    active_reports = db.query(Complaint).filter(
+        Complaint.status.in_(["pending", "in progress", "for review"])).all()
 
     incoming_text = f"{description} {address}".lower()
     incoming_words = set(incoming_text.split())
@@ -39,7 +40,8 @@ def find_possible_duplicate(
         if not incoming_words or not existing_words:
             continue
 
-        overlap = len(incoming_words & existing_words) / max(len(incoming_words), 1)
+        overlap = len(incoming_words & existing_words) / \
+            max(len(incoming_words), 1)
         if overlap >= 0.45:
             return report.id
 

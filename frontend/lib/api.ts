@@ -61,7 +61,6 @@ export async function register(dto: RegisterDto): Promise<AuthResponse> {
     username: dto.username,
     email_address: dto.email,
     location_assigned: dto.location_assigned ?? "",
-    role_id: 1,
     role: "citizen",
   };
   return { token: "mock-jwt-token", user };
@@ -107,12 +106,11 @@ export async function createComplaint(
     email_address: MOCK_CITIZEN.email_address,
     location: dto.location,
     lat: dto.lat,
-    lng: dto.lng,
+    lng: dto.long,
     description: dto.description,
-    tagging: dto.tagging,
-    priority: dto.priority ?? "medium",
+    tagging: "", // set by AI after creation
+    priority: "medium", // set by AI after creation
     media: dto.media,
-    title: dto.title,
     status: "pending",
     created_at: now,
     updated_at: now,
@@ -130,7 +128,13 @@ export async function closeComplaint(
   await Promise.resolve();
   const complaint = MOCK_COMPLAINTS.find((c) => c.id === id);
   if (!complaint) throw new Error("Complaint not found");
-  return { ...complaint, status: "closed", updated_at: isoNow() };
+  const now = isoNow();
+  return {
+    ...complaint,
+    status: "resolved",
+    date_resolved: now,
+    updated_at: now,
+  };
 }
 
 // --- Complaints (admin) -------------------------------------------------------

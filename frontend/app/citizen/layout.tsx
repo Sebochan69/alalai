@@ -14,11 +14,9 @@ export default async function CitizenLayout({
   const reports = await getMyComplaints();
   const total = reports.length;
   const pending = reports.filter((r) => r.status === "pending").length;
-  const underReview = reports.filter((r) => r.status === "under-review").length;
+  const underReview = reports.filter((r) => r.status === "for-review").length;
   const inProgress = reports.filter((r) => r.status === "in-progress").length;
-  const resolved = reports.filter(
-    (r) => r.status === "resolved" || r.status === "closed",
-  ).length;
+  const resolved = reports.filter((r) => r.status === "resolved").length;
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -47,7 +45,7 @@ function CitizenNav() {
         </div>
         <div className="flex flex-col leading-none gap-1">
           <span className="font-extrabold text-base tracking-tight">
-            alalAI
+            AlalAI
           </span>
           <span className="text-xs text-muted-foreground font-medium leading-none">
             Citizen Portal
@@ -93,32 +91,44 @@ function CitizenSidebar({
       </div>
 
       {/* Bottom section */}
-      <div className="shrink-0 px-4 pb-5 space-y-3">
+      <div className="shrink-0 px-4 pb-5 space-y-2">
         {/* Live stats card */}
-        <div className="rounded-2xl bg-card border border-border p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                My Reports
-              </p>
+        <div className="relative rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 dark:from-accent/15 dark:via-accent/8 dark:to-transparent border border-blue-200 dark:border-accent/25 px-4 py-3 overflow-hidden">
+          <div className="absolute top-0 right-0 w-10 h-10 bg-accent/10 rounded-full -translate-y-2 translate-x-2 pointer-events-none" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-accent flex items-center justify-center shrink-0 shadow shadow-accent/30">
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+              </div>
+              <p className="text-xs font-black text-accent">My Reports</p>
             </div>
-            <span className="text-xs text-muted-foreground font-medium">
+            <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live
             </span>
           </div>
-
-          {/* Big total number */}
-          <p className="text-4xl font-black text-foreground leading-none mb-0.5">
-            {total}
+          <p className="text-3xl font-black leading-none">{total}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            reports filed
           </p>
-          <p className="text-xs text-muted-foreground mb-1">reports filed</p>
         </div>
 
         {/* Help card */}
-        <div className="rounded-2xl bg-accent/8 border border-accent/15 p-3">
+        <div className="rounded-2xl bg-accent/8 border border-accent/15 px-3 py-2.5">
           <p className="text-xs font-bold text-accent mb-0.5">Need help?</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Barangay San Isidro Hall
           </p>
           <p className="text-sm font-bold text-foreground mt-0.5">
@@ -127,8 +137,8 @@ function CitizenSidebar({
         </div>
 
         {/* User + sign out */}
-        <div className="flex items-center gap-3 px-1 pt-1 pb-1">
-          <div className="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm font-extrabold shrink-0">
+        <div className="flex items-center gap-3 px-1 pt-1">
+          <div className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center text-xs font-extrabold shrink-0">
             JD
           </div>
           <div className="flex-1 min-w-0">
@@ -138,11 +148,11 @@ function CitizenSidebar({
         </div>
         <Link
           href="/login"
-          className="flex items-center justify-center gap-2 w-full h-10 rounded-xl border border-border/80 text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/40 transition-all"
+          className="flex items-center justify-center gap-2 w-full h-9 rounded-xl border border-border/80 text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/40 transition-all"
         >
           <svg
-            width="15"
-            height="15"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"

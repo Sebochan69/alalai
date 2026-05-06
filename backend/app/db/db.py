@@ -15,6 +15,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # 4. Define a Model (This becomes a Table)
+
+
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -24,11 +26,14 @@ class User(Base):
     location_assigned = Column(String)
     role = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
     # RELATIONSHIPS:
-    complaints = relationship("Complaint", back_populates="created_by", foreign_keys="[Complaint.user_id]")
-    assigned_tasks = relationship("Complaint", back_populates="assigned_to", foreign_keys="[Complaint.assigned_id]")
+    complaints = relationship(
+        "Complaint", back_populates="created_by", foreign_keys="[Complaint.user_id]")
+    assigned_tasks = relationship(
+        "Complaint", back_populates="assigned_to", foreign_keys="[Complaint.assigned_id]")
     comments = relationship("Comment", back_populates="author")
+
 
 class Complaint(Base):
     __tablename__ = "complaints"
@@ -54,17 +59,21 @@ class Complaint(Base):
     # FOREIGN KEY: Points to the User who created the complaint
     user_id = Column(Integer, ForeignKey("users.id"))
     assigned_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    
-    # RELATIONSHIP: Access the user object via 'complaint_instance.created_by'
-    created_by = relationship("User", back_populates="complaints", foreign_keys=[user_id])
-    assigned_to = relationship("User", back_populates="assigned_tasks", foreign_keys=[assigned_id])
 
-    comments = relationship("Comment", back_populates="complaint", cascade="all, delete-orphan")
+    # RELATIONSHIP: Access the user object via 'complaint_instance.created_by'
+    created_by = relationship(
+        "User", back_populates="complaints", foreign_keys=[user_id])
+    assigned_to = relationship(
+        "User", back_populates="assigned_tasks", foreign_keys=[assigned_id])
+
+    comments = relationship(
+        "Comment", back_populates="complaint", cascade="all, delete-orphan")
+
 
 class Report(Base):
     __tablename__ = "reports"
     id = Column(Integer, primary_key=True, index=True)
-    month = Column(String, index=True) # e.g., "2026-05"
+    month = Column(String, index=True)  # e.g., "2026-05"
     overall_complaint_count = Column(Integer)
     overall_completion_rate = Column(Integer)
     forecast = Column(String)
@@ -73,12 +82,13 @@ class Report(Base):
     suggest_actions = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
 class Comment(Base):
     __tablename__ = "comments"
     id = Column(Integer, primary_key=True, index=True)
     content = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
     complaint_id = Column(Integer, ForeignKey("complaints.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
 

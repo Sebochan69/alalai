@@ -24,7 +24,7 @@ export function CloseReportButton({ reportId }: { reportId: string }) {
       disabled={loading}
       className="shrink-0 h-9 px-4 rounded-xl border border-emerald-500/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {loading ? "Closing…" : "Close Report"}
+      {loading ? "Confirming…" : "Confirm Resolved"}
     </button>
   );
 }
