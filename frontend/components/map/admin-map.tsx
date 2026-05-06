@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useRef } from "react";
+import type { Map as MapLibreMap, Marker as MapLibreMarker } from "maplibre-gl";
 
 export interface AdminPin {
   id: string;
@@ -30,6 +31,10 @@ const PRIORITY_COLOR: Record<string, string> = {
 const BRGY_CENTER: [number, number] = [120.9842, 14.5997];
 const BRGY_ZOOM = 14.5;
 
+type AdminMapInstance = MapLibreMap & {
+  _themeObserver?: MutationObserver;
+};
+
 function isDarkMode() {
   if (typeof window === "undefined") return false;
   return document.documentElement.classList.contains("dark");
@@ -41,18 +46,18 @@ export function AdminMapView({
   onPinClick,
   onCardPos,
   onReady,
+  center,
 }: {
   pins: AdminPin[];
   selectedId?: string | null;
   onPinClick?: (id: string) => void;
   onCardPos?: (pos: { x: number; y: number } | null) => void;
   onReady?: () => void;
+  center?: [number, number];
 }) {
   const mapRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mapInstanceRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const markersRef = useRef<Record<string, any>>({});
+  const mapInstanceRef = useRef<AdminMapInstance | null>(null);
+  const markersRef = useRef<Record<string, MapLibreMarker>>({});
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -68,11 +73,12 @@ export function AdminMapView({
       const key = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
       const getStyleUrl = (isDark: boolean) =>
         `https://api.maptiler.com/maps/${isDark ? "streets-v2-dark" : "streets-v2"}/style.json?key=${key}`;
+      const hqLocation = center ?? BRGY_CENTER;
 
       const map = new Map({
         container: mapRef.current!,
         style: getStyleUrl(dark),
-        center: BRGY_CENTER,
+        center: hqLocation,
         zoom: BRGY_ZOOM,
         attributionControl: false,
         fadeDuration: 0,
@@ -94,7 +100,7 @@ export function AdminMapView({
           </svg>
         </div>`;
         new Marker({ element: hqEl, anchor: "bottom" })
-          .setLngLat(BRGY_CENTER)
+          .setLngLat(hqLocation)
           .addTo(map);
 
         onReady?.();
@@ -143,12 +149,12 @@ export function AdminMapView({
         attributeFilter: ["class"],
       });
       // store observer for cleanup
-      (map as any)._themeObserver = observer;
+      mapInstanceRef.current = Object.assign(map, { _themeObserver: observer });
     });
 
     return () => {
       if (mapInstanceRef.current) {
-        (mapInstanceRef.current as any)._themeObserver?.disconnect();
+        mapInstanceRef.current._themeObserver?.disconnect();
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
         markersRef.current = {};

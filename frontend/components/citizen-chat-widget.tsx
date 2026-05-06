@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { chatWithBot } from "@/lib/api";
 
 //  Types
 
@@ -417,7 +418,7 @@ export default function CitizenChatWidget() {
     el.style.height = Math.min(el.scrollHeight, 96) + "px";
   }
 
-  function send(text: string) {
+  async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed || isTyping) return;
 
@@ -432,18 +433,27 @@ export default function CitizenChatWidget() {
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
     setIsTyping(true);
-    const delay = 600 + Math.random() * 500;
-    setTimeout(() => {
+    try {
+      const reply = await chatWithBot(trimmed);
       const botMsg: Message = {
         id: nextId.current++,
         role: "bot",
-        text: getBotReply(trimmed),
+        text: reply,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botMsg]);
+    } catch {
+      const botMsg: Message = {
+        id: nextId.current++,
+        role: "bot",
+        text: "Sorry, I'm having trouble connecting right now. Please try again or call the barangay hotline directly.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, botMsg]);
+    } finally {
       setIsTyping(false);
       if (!open) setHasUnread(true);
-    }, delay);
+    }
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {

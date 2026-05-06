@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/api";
-import type { UserRole } from "@/lib/types";
+import { login, storeToken } from "@/lib/api";
 
 interface LoginFormProps {
   isAdmin: boolean;
@@ -11,7 +10,7 @@ interface LoginFormProps {
 
 export function LoginForm({ isAdmin }: LoginFormProps) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,18 +18,24 @@ export function LoginForm({ isAdmin }: LoginFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !password) {
+    if (!username || !password) {
       setError("Please fill in all fields.");
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      const role: UserRole = isAdmin ? "admin" : "citizen";
-      await login({ email, password, role });
-      router.push(isAdmin ? "/admin/dashboard" : "/citizen/dashboard");
-    } catch {
-      setError("Invalid credentials. Please try again.");
+      const data = await login({ username, password });
+      storeToken(data.token);
+      router.push(
+        data.user.role === "admin" ? "/admin/dashboard" : "/citizen/dashboard",
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Invalid credentials. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -115,17 +120,17 @@ export function LoginForm({ isAdmin }: LoginFormProps) {
           <div className="space-y-1.5">
             <label
               className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
-              htmlFor="email"
+              htmlFor="username"
             >
               Email address
             </label>
             <input
-              id="email"
+              id="username"
               type="email"
               placeholder="you@example.com"
               className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               autoComplete="email"
               required
             />

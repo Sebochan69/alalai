@@ -1,4 +1,4 @@
-﻿import { getMapData } from "@/lib/api";
+﻿import { getMyComplaints, getCurrentUser, geocodeLocation } from "@/lib/api";
 import { BrgyMapClient } from "@/components/map/brgy-map-client";
 import type { MapPin } from "@/components/map/brgy-map";
 
@@ -7,16 +7,22 @@ const LEGEND = [
   { color: "bg-blue-500", label: "In Progress" },
   { color: "bg-violet-500", label: "For Review" },
   { color: "bg-emerald-500", label: "Resolved" },
-  { color: "bg-indigo-500", label: "Brgy. Hall" },
 ];
 
 export default async function BrgyMapPage() {
-  const complaints = await getMapData();
+  const [complaints, user] = await Promise.all([
+    getMyComplaints(),
+    getCurrentUser(),
+  ]);
 
-  const pinsWithCoords = complaints.filter(
-    (c) => c.lat != null && c.lng != null,
-  );
-  const pins: MapPin[] = pinsWithCoords.map((c) => ({
+  const center = user?.location_assigned
+    ? await geocodeLocation(user.location_assigned)
+    : null;
+
+  const withCoords = complaints.filter((c) => c.lat != null && c.lng != null);
+  const noCoords = complaints.filter((c) => c.lat == null || c.lng == null);
+
+  const pins: MapPin[] = withCoords.map((c) => ({
     id: c.id,
     lat: c.lat!,
     lng: c.lng!,
@@ -34,7 +40,7 @@ export default async function BrgyMapPage() {
             Barangay Map
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Live complaint locations across Brgy. San Isidro.
+            Live complaint locations near your assigned area.
           </p>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 bg-card border border-border rounded-full px-3 py-1.5">
@@ -56,12 +62,6 @@ export default async function BrgyMapPage() {
             </span>
           </div>
         ))}
-        <div className="flex items-center gap-2 bg-card border border-border rounded-full px-3 py-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0" />
-          <span className="text-xs font-semibold text-muted-foreground">
-            Brgy. Hall
-          </span>
-        </div>
       </div>
 
       {/* Map container */}
@@ -94,7 +94,7 @@ export default async function BrgyMapPage() {
             </p>
           </div>
         ) : (
-          <BrgyMapClient pins={pins} />
+          <BrgyMapClient pins={pins} center={center ?? undefined} />
         )}
       </div>
 
@@ -135,6 +135,73 @@ export default async function BrgyMapPage() {
         </a>
         .
       </div>
+
+      {/* Reports without GPS */}
+      {noCoords.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center gap-2 mb-3">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-muted-foreground"
+            >
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+              <line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" />
+            </svg>
+            <p className="text-sm font-bold">Reports without GPS location</p>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              {noCoords.length}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {noCoords.map((c) => {
+              const STATUS_DOT: Record<string, string> = {
+                pending: "bg-amber-400",
+                "in-progress": "bg-blue-500",
+                "for-review": "bg-violet-500",
+                resolved: "bg-emerald-500",
+              };
+              const STATUS_LABEL: Record<string, string> = {
+                pending: "Pending",
+                "in-progress": "In Progress",
+                "for-review": "For Review",
+                resolved: "Resolved",
+              };
+              return (
+                <div
+                  key={c.id}
+                  className="bg-card border border-border/60 rounded-xl px-4 py-3 flex items-center gap-3"
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[c.status] ?? "bg-slate-400"}`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">
+                      {c.title ?? c.description.slice(0, 60)}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {c.location}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {STATUS_LABEL[c.status] ?? c.status}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            These reports have no GPS coordinates — file via the app to see them
+            on the map.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

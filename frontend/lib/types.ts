@@ -93,9 +93,8 @@ export interface UpdateComplaintDto {
 }
 
 export interface LoginDto {
-  email: string;
+  username: string;
   password: string;
-  role: UserRole;
 }
 
 export interface RegisterDto {

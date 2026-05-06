@@ -1,6 +1,6 @@
 ﻿import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAdminComplaint } from "@/lib/api";
+import { getAdminComplaint, getAdminComplaints } from "@/lib/api";
 import { AdminUpdateForm } from "@/components/forms/admin-update-form";
 import { MediaViewer } from "@/components/ui/media-viewer";
 import { ReportLocationMapClient } from "@/components/map/report-location-map-client";
@@ -41,7 +41,9 @@ const PRIORITY: Record<string, { label: string; chip: string }> = {
 };
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-PH", {
+  const date = new Date(iso);
+  if (!iso || isNaN(date.getTime())) return "Not available";
+  return date.toLocaleDateString("en-PH", {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -54,8 +56,26 @@ export default async function AdminReportDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const report = await getAdminComplaint(id);
-  if (!report) notFound();
+  const detail = await getAdminComplaint(id);
+  if (!detail) notFound();
+
+  const fallback = (await getAdminComplaints()).find((item) => item.id === id);
+  const report = {
+    ...detail,
+    created_at: detail.created_at || fallback?.created_at || "",
+    updated_at:
+      detail.updated_at ||
+      fallback?.updated_at ||
+      fallback?.created_at ||
+      detail.created_at ||
+      "",
+    adminComment: detail.adminComment ?? fallback?.adminComment,
+    adminCommentDate:
+      detail.adminCommentDate ??
+      fallback?.adminCommentDate ??
+      fallback?.updated_at,
+    adminName: detail.adminName ?? fallback?.adminName,
+  };
 
   const s = STATUS[report.status] ?? STATUS["pending"];
   const p = report.priority ? (PRIORITY[report.priority] ?? null) : null;

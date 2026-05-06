@@ -14,13 +14,16 @@ export default function CitizenMapLoading() {
 
       {/* Legend chips */}
       <div className="flex gap-2 flex-wrap mb-4">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-8 w-24 rounded-full" />
         ))}
       </div>
 
       {/* Map area */}
-      <Skeleton className="w-full rounded-2xl" style={{ height: "520px" }} />
+      <Skeleton
+        className="w-full rounded-2xl"
+        style={{ height: "calc(100vh - 280px)", minHeight: "420px" }}
+      />
     </div>
   );
 }
