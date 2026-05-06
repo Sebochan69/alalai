@@ -72,7 +72,7 @@ export function AdminAIBadge() {
       <div>
         <div className="flex items-center gap-2 mb-0.5">
           <p className="text-sm font-black text-violet-500 dark:text-violet-400">
-            AI Backend Active
+            Smart Auto-Classification
           </p>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/25 flex items-center gap-1">
             <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse inline-block" />
@@ -80,8 +80,8 @@ export function AdminAIBadge() {
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Reports are auto-classified by AI — category, priority, and zone
-          routing happen on the backend before reaching you.
+          Every report is automatically tagged, prioritized, and routed to the
+          right admin — no manual sorting needed.
         </p>
       </div>
     </motion.div>

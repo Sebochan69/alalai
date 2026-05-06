@@ -14,13 +14,6 @@ const STATUS_CONFIG: Record<
       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800",
     bar: "bg-amber-400",
   },
-  "under-review": {
-    label: "Under Review",
-    dot: "bg-violet-400",
-    badge:
-      "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-800",
-    bar: "bg-violet-400",
-  },
   "in-progress": {
     label: "In Progress",
     dot: "bg-blue-400",
@@ -28,18 +21,19 @@ const STATUS_CONFIG: Record<
       "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800",
     bar: "bg-blue-400",
   },
+  "for-review": {
+    label: "For Review",
+    dot: "bg-violet-400",
+    badge:
+      "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-800",
+    bar: "bg-violet-400",
+  },
   resolved: {
     label: "Resolved",
     dot: "bg-emerald-400",
     badge:
       "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800",
     bar: "bg-emerald-400",
-  },
-  closed: {
-    label: "Closed",
-    dot: "bg-slate-400",
-    badge: "bg-muted text-muted-foreground border-border",
-    bar: "bg-slate-400",
   },
 };
 
@@ -64,13 +58,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   Other: "📋",
 };
 
-const STATUS_ORDER = [
-  "pending",
-  "under-review",
-  "in-progress",
-  "resolved",
-  "closed",
-];
+const STATUS_ORDER = ["pending", "in-progress", "for-review", "resolved"];
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -99,8 +87,8 @@ function StatusProgress({ status }: { status: string }) {
   const active = idx >= 0 ? idx : 0;
   const steps = [
     { key: "pending", label: "Filed" },
-    { key: "under-review", label: "Review" },
     { key: "in-progress", label: "Action" },
+    { key: "for-review", label: "Review" },
     { key: "resolved", label: "Resolved" },
   ];
   return (
@@ -108,7 +96,7 @@ function StatusProgress({ status }: { status: string }) {
       {steps.map((s, i) => {
         const done = STATUS_ORDER.indexOf(status) > STATUS_ORDER.indexOf(s.key);
         const current =
-          s.key === status || (status === "closed" && s.key === "resolved");
+          s.key === status || (status === "resolved" && s.key === "resolved");
         return (
           <div key={s.key} className="flex items-center flex-1">
             <div className="flex flex-col items-center gap-1 flex-1">
@@ -149,20 +137,18 @@ export default async function MyReportsPage() {
   const counts = {
     all: sorted.length,
     pending: sorted.filter((r) => r.status === "pending").length,
-    "under-review": sorted.filter((r) => r.status === "under-review").length,
+    "for-review": sorted.filter((r) => r.status === "for-review").length,
     "in-progress": sorted.filter((r) => r.status === "in-progress").length,
-    resolved: sorted.filter(
-      (r) => r.status === "resolved" || r.status === "closed",
-    ).length,
+    resolved: sorted.filter((r) => r.status === "resolved").length,
   };
 
   const tabs = [
     { key: "all", label: "All", count: counts.all },
     { key: "pending", label: "Pending", count: counts.pending },
     {
-      key: "under-review",
-      label: "Under Review",
-      count: counts["under-review"],
+      key: "for-review",
+      label: "For Review",
+      count: counts["for-review"],
     },
     { key: "in-progress", label: "In Progress", count: counts["in-progress"] },
     { key: "resolved", label: "Resolved", count: counts.resolved },
@@ -275,11 +261,11 @@ export default async function MyReportsPage() {
       {/* ── Report cards ──────────────────────────────────────────────── */}
       <div className="space-y-4">
         {sorted.map((report) => {
-          const s = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.closed;
+          const s = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.resolved;
           const p = PRIORITY_CONFIG[report.priority ?? "low"];
           const emoji = CATEGORY_EMOJI[report.tagging] ?? "📋";
           const isActive =
-            report.status === "in-progress" || report.status === "under-review";
+            report.status === "in-progress" || report.status === "for-review";
 
           return (
             <Link

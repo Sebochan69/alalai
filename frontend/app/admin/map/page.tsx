@@ -15,7 +15,8 @@ export default async function AdminMapPage() {
       location: r.location,
       citizenName: r.citizenName,
       priority: r.priority ?? "medium",
+      summary: r.summary ?? r.description,
     }));
 
-  return <AdminMapClient pins={pins} />;
+  return <AdminMapClient pins={pins} emptyState={pins.length === 0} />;
 }

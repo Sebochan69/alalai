@@ -18,13 +18,6 @@ const STATUS_CONFIG: Record<
     glow: "",
     bar: "bg-amber-400",
   },
-  "under-review": {
-    label: "Under Review",
-    badge:
-      "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-800",
-    glow: "shadow-violet-500/10",
-    bar: "bg-violet-400",
-  },
   "in-progress": {
     label: "In Progress",
     badge:
@@ -32,18 +25,19 @@ const STATUS_CONFIG: Record<
     glow: "shadow-blue-500/15",
     bar: "bg-blue-400",
   },
+  "for-review": {
+    label: "For Review",
+    badge:
+      "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-800",
+    glow: "shadow-violet-500/10",
+    bar: "bg-violet-400",
+  },
   resolved: {
     label: "Resolved",
     badge:
       "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800",
     glow: "shadow-emerald-500/15",
     bar: "bg-emerald-500",
-  },
-  closed: {
-    label: "Closed",
-    badge: "bg-muted text-muted-foreground border-border",
-    glow: "",
-    bar: "bg-slate-400",
   },
 };
 
@@ -87,28 +81,27 @@ const TIMELINE: { key: ReportStatus; label: string; desc: string }[] = [
     desc: "Your report was received by the system.",
   },
   {
-    key: "under-review",
-    label: "Under Review",
-    desc: "Admin is reviewing the concern.",
-  },
-  {
     key: "in-progress",
     label: "In Progress",
     desc: "A team has been dispatched to act on it.",
   },
   {
+    key: "for-review",
+    label: "For Review",
+    desc: "Admin has addressed the issue. Confirm below to resolve.",
+  },
+  {
     key: "resolved",
     label: "Resolved",
-    desc: "The issue has been addressed and resolved.",
+    desc: "You confirmed and resolved this report.",
   },
 ];
 
 const STATUS_ORDER: ReportStatus[] = [
   "pending",
-  "under-review",
   "in-progress",
+  "for-review",
   "resolved",
-  "closed",
 ];
 
 function formatDate(iso: string) {
@@ -140,12 +133,12 @@ export default async function CitizenReportDetailPage({
   const report = await getComplaint(id);
   if (!report) notFound();
 
-  const s = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.closed;
+  const s = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.resolved;
   const p = PRIORITY_CONFIG[report.priority ?? "low"];
   const emoji = CATEGORY_EMOJI[report.tagging] ?? "📋";
   const currentIdx = STATUS_ORDER.indexOf(report.status as ReportStatus);
   const isActive =
-    report.status === "in-progress" || report.status === "under-review";
+    report.status === "in-progress" || report.status === "for-review";
 
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
@@ -236,12 +229,9 @@ export default async function CitizenReportDetailPage({
               const tIdx = STATUS_ORDER.indexOf(t.key);
               const done =
                 currentIdx > tIdx ||
-                (report.status === "closed" && t.key === "resolved");
+                (report.status === "resolved" && t.key === "resolved");
               const current =
-                report.status === t.key ||
-                (report.status === "closed" &&
-                  t.key === "resolved" &&
-                  i === TIMELINE.length - 1);
+                currentIdx === tIdx && report.status !== "resolved";
               const future = !done && !current;
               return (
                 <div
@@ -318,6 +308,22 @@ export default async function CitizenReportDetailPage({
         </div>
       </div>
 
+      {/* ── AI Summary ────────────────────────────────────────────────── */}
+      {report.summary && (
+        <div className="bg-card border border-violet-500/20 rounded-2xl overflow-hidden shadow-sm mb-4">
+          <div className="px-5 py-3 border-b border-violet-500/15 bg-violet-500/5">
+            <p className="text-xs font-bold uppercase tracking-widest text-violet-500 dark:text-violet-400">
+              AI Summary
+            </p>
+          </div>
+          <div className="p-5">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {report.summary}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Photo evidence ─────────────────────────────────────────── */}
       {report.media && (
         <MediaViewer src={report.media} label="Your Submitted Photo" />
@@ -390,15 +396,15 @@ export default async function CitizenReportDetailPage({
         </div>
       )}
 
-      {/* ── Close action (resolved only) ──────────────────────────────── */}
-      {report.status === "resolved" && (
+      {/* ── Resolve action (for-review only) ────────────────────── */}
+      {report.status === "for-review" && (
         <div className="bg-emerald-500/5 border border-emerald-500/25 rounded-2xl p-5 mb-4 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-0.5">
               Issue fully resolved?
             </p>
             <p className="text-xs text-muted-foreground">
-              Close this ticket to mark it as complete.
+              Confirm to mark this report as resolved.
             </p>
           </div>
           <CloseReportButton reportId={report.id} />

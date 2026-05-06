@@ -89,8 +89,8 @@ export const citizenNavItems = [
 export function CitizenSidebarNav() {
   const pathname = usePathname();
   return (
-    <nav className="flex flex-col gap-1 px-3 pr-4">
-      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-4 mb-2">
+    <nav className="flex flex-col gap-1 px-3">
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-2">
         Menu
       </p>
       {citizenNavItems.map((item) => {
@@ -100,16 +100,24 @@ export function CitizenSidebarNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            className={`flex items-center gap-3 px-2 py-2 rounded-xl text-sm transition-all ${
               active
-                ? "bg-accent text-white shadow-sm"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                ? "bg-blue-100 dark:bg-accent/10 text-accent font-bold"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium"
             }`}
           >
-            <span className="w-4.5 h-4.5 shrink-0">{item.icon}</span>
+            <span
+              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                active
+                  ? "bg-blue-200 dark:bg-accent/20 text-accent"
+                  : "bg-black/5 dark:bg-white/8 text-muted-foreground"
+              }`}
+            >
+              {item.icon}
+            </span>
             <span className="flex-1">{item.label}</span>
             {active && (
-              <span className="w-2 h-2 rounded-full bg-white shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mr-1" />
             )}
           </Link>
         );

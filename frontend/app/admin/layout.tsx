@@ -15,7 +15,7 @@ export default async function AdminLayout({
   const reports = await getAdminComplaints();
   const pending = reports.filter((r) => r.status === "pending").length;
   const inProgress = reports.filter(
-    (r) => r.status === "in-progress" || r.status === "under-review",
+    (r) => r.status === "in-progress" || r.status === "for-review",
   ).length;
 
   return (
@@ -51,7 +51,7 @@ function AdminNav() {
           </div>
           <div>
             <span className="font-extrabold text-base tracking-tight block leading-none">
-              alalAI
+              AlalAI
             </span>
             <span className="text-xs text-muted-foreground font-medium">
               Admin Portal
@@ -59,12 +59,6 @@ function AdminNav() {
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20">
-            <div className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
-            <span className="text-xs text-violet-500 dark:text-violet-400 font-semibold">
-              Zones A, B, C
-            </span>
-          </div>
           <ThemeToggle />
           <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-border">
             <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white text-xs font-black shrink-0">
@@ -92,22 +86,23 @@ function AdminSidebar({
 }) {
   return (
     <aside className="w-64 border-r border-border bg-card flex-col hidden md:flex shrink-0 overflow-hidden">
-      <div className="flex-1 overflow-hidden flex flex-col py-5">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 px-5">
+      <div className="flex-1 overflow-hidden flex flex-col py-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 px-5">
           Menu
         </p>
-        <nav className="flex flex-col gap-0.5 px-3">
+        <nav className="flex flex-col gap-1 px-3">
           <AdminSidebarNav items={adminNavItems} />
         </nav>
       </div>
       {/* Bottom stats + sign out */}
       <div className="shrink-0 px-4 pb-5 space-y-3">
-        <div className="rounded-2xl bg-linear-to-br from-violet-600/15 to-violet-500/5 border border-violet-500/20 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-6 h-6 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
+        <div className="relative rounded-2xl bg-gradient-to-br from-violet-100 to-violet-50 dark:from-violet-600/20 dark:via-violet-500/10 dark:to-transparent border border-violet-200 dark:border-violet-500/25 p-4 overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-violet-500/10 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center shrink-0 shadow shadow-violet-500/30">
               <svg
-                width="12"
-                height="12"
+                width="13"
+                height="13"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="white"
@@ -118,27 +113,25 @@ function AdminSidebar({
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
             </div>
-            <p className="text-xs font-black text-violet-500 dark:text-violet-400">
+            <p className="text-xs font-black text-violet-600 dark:text-violet-400">
               Your Coverage
             </p>
           </div>
-          <p className="text-[11px] text-muted-foreground">
-            Zones: <span className="text-foreground font-bold">A, B, C</span>
-          </p>
-          <div className="flex items-center gap-3 mt-2.5">
-            <div className="flex-1">
-              <p className="text-[10px] text-muted-foreground">Pending</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-amber-50 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20 rounded-xl px-3 py-2 text-center">
+              <p className="text-[10px] text-muted-foreground mb-0.5">
+                Pending
+              </p>
               <p
-                className={`text-sm font-black ${pending > 0 ? "text-amber-400" : "text-muted-foreground"}`}
+                className={`text-xl font-black ${pending > 0 ? "text-amber-500" : "text-muted-foreground"}`}
               >
                 {pending}
               </p>
             </div>
-            <div className="w-px h-6 bg-border" />
-            <div className="flex-1">
-              <p className="text-[10px] text-muted-foreground">Active</p>
+            <div className="bg-violet-50 border border-violet-200 dark:bg-violet-500/10 dark:border-violet-500/20 rounded-xl px-3 py-2 text-center">
+              <p className="text-[10px] text-muted-foreground mb-0.5">Active</p>
               <p
-                className={`text-sm font-black ${inProgress > 0 ? "text-violet-400" : "text-muted-foreground"}`}
+                className={`text-xl font-black ${inProgress > 0 ? "text-violet-500" : "text-muted-foreground"}`}
               >
                 {inProgress}
               </p>

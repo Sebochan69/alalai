@@ -4,23 +4,26 @@ import type { MapPin } from "@/components/map/brgy-map";
 
 const LEGEND = [
   { color: "bg-amber-400", label: "Pending" },
-  { color: "bg-purple-500", label: "Under Review" },
   { color: "bg-blue-500", label: "In Progress" },
+  { color: "bg-violet-500", label: "For Review" },
   { color: "bg-emerald-500", label: "Resolved" },
-  { color: "bg-slate-400", label: "Closed" },
+  { color: "bg-indigo-500", label: "Brgy. Hall" },
 ];
 
 export default async function BrgyMapPage() {
   const complaints = await getMapData();
 
-  const pins: MapPin[] = complaints.map((c) => ({
+  const pinsWithCoords = complaints.filter(
+    (c) => c.lat != null && c.lng != null,
+  );
+  const pins: MapPin[] = pinsWithCoords.map((c) => ({
     id: c.id,
     lat: c.lat!,
     lng: c.lng!,
-    title: c.title,
+    title: c.title ?? c.description.slice(0, 60),
     status: c.status as MapPin["status"],
     tagging: c.tagging,
-    summary: c.description,
+    summary: c.summary ?? c.description,
   }));
   return (
     <div className="p-5 md:p-8 max-w-5xl mx-auto w-full">
@@ -66,7 +69,33 @@ export default async function BrgyMapPage() {
         className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden"
         style={{ height: "calc(100vh - 280px)", minHeight: "420px" }}
       >
-        <BrgyMapClient pins={pins} />
+        {pins.length === 0 ? (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-muted-foreground">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="opacity-30"
+            >
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+              <circle cx="12" cy="9" r="2.5" />
+            </svg>
+            <p className="text-sm font-semibold">
+              No complaints with GPS data yet
+            </p>
+            <p className="text-xs text-center max-w-xs">
+              Pins will appear here once complaints are filed with a GPS
+              location.
+            </p>
+          </div>
+        ) : (
+          <BrgyMapClient pins={pins} />
+        )}
       </div>
 
       {/* Info note */}
