@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getMonthlyReport } from "@/lib/api";
 
 const CATEGORY_COLORS = [
@@ -75,7 +76,96 @@ function formatMonth(raw: string) {
 }
 
 export default async function MonthlyReportPage() {
-  const report = await getMonthlyReport();
+  let report: Awaited<ReturnType<typeof getMonthlyReport>> = null;
+  let loadError: string | null = null;
+
+  try {
+    report = await getMonthlyReport();
+  } catch (error) {
+    loadError =
+      error instanceof Error
+        ? error.message
+        : "Unable to load the monthly report.";
+  }
+
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const isAuthError =
+    loadError?.toLowerCase().includes("invalid token") ||
+    loadError?.toLowerCase().includes("unauthorized") ||
+    loadError?.toLowerCase().includes("forbidden");
+
+  if (!report) {
+    return (
+      <div className="min-h-full bg-background">
+        <div className="relative overflow-hidden border-b border-border/50">
+          <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-violet-600/10 blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 right-10 w-56 h-56 rounded-full bg-accent/8 blur-3xl pointer-events-none" />
+          <div className="px-6 md:px-10 pt-8 pb-7 max-w-6xl mx-auto">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-violet-500 dark:text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2.5 py-1 rounded-full">
+                    AI-Powered Analytics
+                  </span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
+                  Monthly Report
+                </h1>
+                <p className="text-base text-muted-foreground mt-1 font-medium">
+                  {formatMonth(currentMonth)}
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5 bg-card border border-amber-500/30 rounded-2xl px-4 py-3 shadow-lg">
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                <span className="text-sm font-black text-amber-500">
+                  {isAuthError ? "Sign In Needed" : "Not Generated Yet"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 md:px-10 py-10 max-w-6xl mx-auto">
+          <div className="bg-card border border-border/60 rounded-2xl p-8 md:p-10 shadow-sm text-center">
+            <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto mb-5">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-violet-500"
+              >
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+            </div>
+            <p className="text-xl font-black tracking-tight mb-2">
+              {isAuthError ? "Your session expired" : "No monthly report yet"}
+            </p>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+              {isAuthError
+                ? "Please sign in again as an admin to load the monthly analytics."
+                : `The backend does not have analytics for ${formatMonth(
+                    currentMonth,
+                  )} yet. Once the monthly report is generated, the forecast, completion rate, and suggested actions will appear here.`}
+            </p>
+            {isAuthError && (
+              <Link href="/login?role=admin">
+                <button className="mt-6 h-11 px-5 rounded-xl bg-violet-600 text-white text-sm font-black hover:bg-violet-600/90 transition-colors shadow-sm">
+                  Sign in again
+                </button>
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Clamp to valid range in case BE sends bad data
   const rate = Math.min(100, Math.max(0, report.overall_completion_rate));

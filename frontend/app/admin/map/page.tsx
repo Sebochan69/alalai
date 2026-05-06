@@ -1,8 +1,16 @@
-﻿import { getAdminComplaints } from "@/lib/api";
+﻿import { getAdminComplaints, getCurrentUser, geocodeLocation } from "@/lib/api";
 import { AdminMapClient } from "@/components/map/admin-map-client";
 
 export default async function AdminMapPage() {
-  const reports = await getAdminComplaints();
+  const [reports, user] = await Promise.all([
+    getAdminComplaints(),
+    getCurrentUser(),
+  ]);
+
+  const center = user?.location_assigned
+    ? await geocodeLocation(user.location_assigned)
+    : null;
+
   const pins = reports
     .filter((r) => r.lat && r.lng)
     .map((r) => ({
@@ -18,5 +26,11 @@ export default async function AdminMapPage() {
       summary: r.summary ?? r.description,
     }));
 
-  return <AdminMapClient pins={pins} emptyState={pins.length === 0} />;
+  return (
+    <AdminMapClient
+      pins={pins}
+      emptyState={pins.length === 0}
+      center={center ?? undefined}
+    />
+  );
 }

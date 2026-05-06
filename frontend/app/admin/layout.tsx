@@ -5,14 +5,24 @@ import {
   AdminMobileNavLinks,
   adminNavItems,
 } from "@/components/admin-sidebar-nav";
-import { getAdminComplaints } from "@/lib/api";
+import { getAdminComplaints, getCurrentUser } from "@/lib/api";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const reports = await getAdminComplaints();
+  const [reports, user] = await Promise.all([
+    getAdminComplaints(),
+    getCurrentUser(),
+  ]);
+  const displayName = user?.username ?? "Admin";
+  const initials = displayName
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
   const pending = reports.filter((r) => r.status === "pending").length;
   const inProgress = reports.filter(
     (r) => r.status === "in-progress" || r.status === "for-review",
@@ -20,7 +30,7 @@ export default async function AdminLayout({
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
-      <AdminNav />
+      <AdminNav displayName={displayName} initials={initials} />
       <div className="flex-1 flex overflow-hidden">
         <AdminSidebar pending={pending} inProgress={inProgress} />
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
@@ -30,7 +40,13 @@ export default async function AdminLayout({
   );
 }
 
-function AdminNav() {
+function AdminNav({
+  displayName,
+  initials,
+}: {
+  displayName: string;
+  initials: string;
+}) {
   return (
     <header className="border-b border-border bg-card sticky top-0 z-40 shadow-sm shrink-0">
       <div className="px-4 md:px-6 h-16 flex items-center justify-between">
@@ -62,13 +78,13 @@ function AdminNav() {
           <ThemeToggle />
           <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-border">
             <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white text-xs font-black shrink-0">
-              A1
+              {initials}
             </div>
             <div className="hidden md:block">
-              <p className="text-sm font-semibold leading-none">Admin 1</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Zone Admin
+              <p className="text-sm font-semibold leading-none">
+                {displayName}
               </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Admin</p>
             </div>
           </div>
         </div>

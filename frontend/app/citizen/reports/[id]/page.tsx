@@ -1,9 +1,10 @@
 ﻿import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getComplaint } from "@/lib/api";
+import { getComplaint, getMyComplaints } from "@/lib/api";
 import { CloseReportButton } from "@/components/forms/close-report-button";
 import { MediaViewer } from "@/components/ui/media-viewer";
 import type { ReportStatus } from "@/lib/types";
+import { getCategoryEmoji } from "@/lib/utils";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -62,18 +63,6 @@ const PRIORITY_CONFIG: Record<
   },
 };
 
-const CATEGORY_EMOJI: Record<string, string> = {
-  Infrastructure: "🏗️",
-  Environment: "🌿",
-  "Public Safety": "🛡️",
-  Sanitation: "🗑️",
-  "Noise Complaint": "🔊",
-  "Illegal Construction": "🚧",
-  Flooding: "🌊",
-  "Animal Control": "🐕",
-  Other: "📋",
-};
-
 const TIMELINE: { key: ReportStatus; label: string; desc: string }[] = [
   {
     key: "pending",
@@ -105,14 +94,18 @@ const STATUS_ORDER: ReportStatus[] = [
 ];
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-PH", {
+  const date = new Date(iso);
+  if (!iso || isNaN(date.getTime())) return "Not available";
+  return date.toLocaleDateString("en-PH", {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
 }
 function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("en-PH", {
+  const date = new Date(iso);
+  if (!iso || isNaN(date.getTime())) return "Not available";
+  return date.toLocaleString("en-PH", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -130,12 +123,31 @@ export default async function CitizenReportDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const report = await getComplaint(id);
-  if (!report) notFound();
+  const detail = await getComplaint(id);
+  if (!detail) notFound();
 
-  const s = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.resolved;
-  const p = PRIORITY_CONFIG[report.priority ?? "low"];
-  const emoji = CATEGORY_EMOJI[report.tagging] ?? "📋";
+  const fallback = (await getMyComplaints()).find((item) => item.id === id);
+  const report = {
+    ...detail,
+    created_at: detail.created_at || fallback?.created_at || "",
+    updated_at:
+      detail.updated_at ||
+      fallback?.updated_at ||
+      fallback?.created_at ||
+      detail.created_at ||
+      "",
+    adminComment: detail.adminComment ?? fallback?.adminComment,
+    adminCommentDate:
+      detail.adminCommentDate ??
+      fallback?.adminCommentDate ??
+      fallback?.updated_at,
+    adminName: detail.adminName ?? fallback?.adminName,
+  };
+
+  const s = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.pending;
+  const p =
+    PRIORITY_CONFIG[report.priority ?? "medium"] ?? PRIORITY_CONFIG.medium;
+  const emoji = getCategoryEmoji(report.tagging);
   const currentIdx = STATUS_ORDER.indexOf(report.status as ReportStatus);
   const isActive =
     report.status === "in-progress" || report.status === "for-review";
@@ -225,7 +237,7 @@ export default async function CitizenReportDetailPage({
           {/* Vertical line */}
           <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
           <div className="space-y-0">
-            {TIMELINE.map((t, i) => {
+            {TIMELINE.map((t) => {
               const tIdx = STATUS_ORDER.indexOf(t.key);
               const done =
                 currentIdx > tIdx ||
@@ -281,9 +293,7 @@ export default async function CitizenReportDetailPage({
                     </p>
                     {current && report.adminCommentDate && (
                       <p className="text-[10px] text-accent font-semibold mt-1">
-                        {formatDate(
-                          new Date(report.adminCommentDate).toISOString(),
-                        )}
+                        {formatDate(report.adminCommentDate)}
                       </p>
                     )}
                   </div>
@@ -381,9 +391,7 @@ export default async function CitizenReportDetailPage({
                   </p>
                   {report.adminCommentDate && (
                     <span className="text-[10px] text-muted-foreground">
-                      {formatDate(
-                        new Date(report.adminCommentDate).toISOString(),
-                      )}
+                      {formatDate(report.adminCommentDate)}
                     </span>
                   )}
                 </div>
