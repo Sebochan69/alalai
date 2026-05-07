@@ -18,8 +18,9 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = "gpt-4o-mini"
     OPENAI_TEMPERATURE: float = 0
 
-    supabase_url: str = ""
-    supabase_anon_key: str = ""
+    SUPABASE_URL: str = ""
+    SUPABASE_ANON_KEY: str = ""
+    SUPABASE_STORAGE_BUCKET: str = "complaint-photos"
 
     FRONTEND_URL: str = "http://localhost:5173"
 

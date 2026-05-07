@@ -93,6 +93,7 @@ class ReportOut(BaseModel):
     longitude: Optional[float] = None
     tag: Optional[str] = None
     priority: Optional[str] = None
+    media: Optional[str] = None
     ai_summary: Optional[str] = None
     dispatch_reason: Optional[str] = None
     ai_processed_complaint: Optional[str] = None

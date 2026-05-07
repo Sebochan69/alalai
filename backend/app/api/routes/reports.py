@@ -15,6 +15,7 @@ from app.services.monthly_report_service import generate_monthly_report, report_
 from app.services.email_service import send_report_status_email
 from app.services.notification_service import create_notification
 from app.services.report_service import find_possible_duplicate
+from app.services.storage_service import upload_complaint_photo
 
 router = APIRouter()
 
@@ -33,6 +34,7 @@ def complaint_to_report_out(complaint: Complaint) -> dict:
         "longitude": complaint.long,
         "tag": complaint.tagging,
         "priority": complaint.priority,
+        "media": complaint.media,
         "ai_summary": complaint.summary,
         "dispatch_reason": complaint.dispatch_reason,
         "ai_processed_complaint": complaint.ai_processed_complaint,
@@ -98,6 +100,19 @@ async def file_report(
         "assignment": assignment,
         "possible_duplicate_report_id": duplicate_id,
     }
+    media_url = None
+    if photo:
+        try:
+            media_url = upload_complaint_photo(
+                file_bytes=await photo.read(),
+                filename=photo.filename,
+                content_type=photo.content_type,
+            )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to upload complaint photo",
+            ) from exc
 
     report = Complaint(
         user_id=current_user.id,
@@ -110,6 +125,7 @@ async def file_report(
         location_area=tag_result.get("location_area"),
         summary=tag_result.get("summary"),
         priority=tag_result.get("priority"),
+        media=media_url,
         dispatch_reason=assignment.get("dispatch_reason"),
         ai_processed_complaint=json.dumps(
             ai_processed_complaint, ensure_ascii=False),
