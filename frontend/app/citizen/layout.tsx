@@ -6,6 +6,7 @@ import {
 import { getMyComplaints, getCurrentUser } from "@/lib/api";
 import CitizenChatWidget from "@/components/citizen-chat-widget";
 import { SignOutButton } from "@/components/sign-out-button";
+import { SessionGuard } from "@/components/session-guard";
 
 export default async function CitizenLayout({
   children,
@@ -27,6 +28,7 @@ export default async function CitizenLayout({
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
+      <SessionGuard />
       <CitizenNav displayName={displayName} initials={initials} />
       <div className="flex-1 flex overflow-hidden">
         <CitizenSidebar

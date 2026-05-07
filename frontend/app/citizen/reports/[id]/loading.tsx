@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CitizenReportDetailLoading() {
   return (
-    <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 max-w-3xl mx-auto space-y-5">
+    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full space-y-5">
       {/* Back link */}
       <Skeleton className="h-4 w-28" />
 

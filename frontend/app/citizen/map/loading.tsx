@@ -20,10 +20,7 @@ export default function CitizenMapLoading() {
       </div>
 
       {/* Map area */}
-      <Skeleton
-        className="w-full rounded-2xl"
-        style={{ height: "calc(100vh - 280px)", minHeight: "420px" }}
-      />
+      <Skeleton className="w-full rounded-2xl h-[calc(100vh-280px)] min-h-[420px]" />
     </div>
   );
 }
