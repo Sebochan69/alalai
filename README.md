@@ -1,284 +1,338 @@
 # AlalAI
 
-AlalAI is an AI-assisted barangay complaint and resident support system. It lets citizens file local concerns, helps admins triage and update reports, shows complaint activity on dashboards and maps, and includes a barangay chatbot powered by a mock knowledge base.
+AlalAI is an AI-assisted barangay complaint management system. Citizens can file concerns, attach photo evidence, track complaint status, and ask a barangay chatbot for help. Admins can manage assigned complaints, update statuses, view maps, and generate monthly AI-assisted reports.
 
-This project was built as a proof of concept for a single-barangay workflow.
+This project was built as a hackathon/demo application for a single barangay workflow.
 
-## What It Does
+## Features
 
-- Citizen login and report tracking
-- Complaint filing with location, description, priority, and AI summary fields
-- AI-assisted complaint tagging and admin assignment
-- Admin report management and status updates
-- Citizen confirmation flow for reports marked `for-review`
-- Email notifications for complaint status changes
-- Complaint map and dashboard views
-- Monthly report and analytics support
-- Barangay chatbot that answers from `backend/app/seed/barangay_info_mock.md`
+- Citizen and admin authentication
+- Citizen complaint filing with location, description, and optional photo upload
+- Supabase Storage integration for complaint photos
+- AI complaint tagging, priority classification, summary, duplicate detection, and admin assignment
+- Admin complaint queue and status updates
+- Complaint map views
+- Monthly report generation with AI forecast and suggested actions
+- Chatbot backed by mock barangay knowledge data
+- Demo chatbot complaint-status lookup using hardcoded mock complaint records
 
 ## Tech Stack
 
-Backend:
+### Backend
 
 - FastAPI
 - SQLAlchemy
-- SQLite for local development
-- PostgreSQL/Supabase-compatible database URL for deployment
-- LangChain + OpenAI
-- JWT auth
+- PostgreSQL/Supabase or SQLite for local fallback
+- OpenAI/LangChain
+- Supabase Storage
+- JWT authentication
 
-Frontend:
+### Frontend
 
 - Next.js
 - React
 - TypeScript
 - Tailwind CSS
-- MapLibre / Leaflet-related map components
+- shadcn-style UI components
+- Leaflet/MapLibre map components
 
 ## Project Structure
 
 ```text
-backend/      FastAPI API, database models, services, prompts, seed scripts
-frontend/     Next.js app and UI components
-docs/         Planning and project notes
-migrations/   Alembic migration files
+alalai/
++-- backend/
+|   +-- app/
+|   |   +-- api/routes/        # FastAPI route modules
+|   |   +-- core/              # Config, constants, security
+|   |   +-- db/                # SQLAlchemy models and session
+|   |   +-- prompts/           # AI prompt files
+|   |   +-- schemas/           # Pydantic schemas
+|   |   +-- seed/              # Mock barangay knowledge base
+|   |   +-- services/          # AI, reports, storage, and shared business logic
+|   +-- tests/
+|   +-- pyproject.toml
+|   +-- requirements.txt
++-- frontend/
+|   +-- app/                   # Next.js app routes
+|   +-- components/
+|   +-- lib/
+|   +-- public/
+|   +-- package.json
++-- docs/
 ```
-
-## Requirements
-
-- Python 3.14 or compatible project environment
-- Node.js and npm
-- An OpenAI API key for AI tagging, assignment, chatbot AI paths, and reports
-- SQLite locally, or a PostgreSQL-compatible `DATABASE_URL` for deployment
 
 ## Backend Setup
 
-From the repository root:
-
 ```bash
 cd backend
-```
-
-Create or use the virtual environment:
-
-```bash
 python -m venv .venv
-source .venv/Scripts/activate
-```
-
-On Windows PowerShell:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-Install dependencies:
-
-```bash
+.\.venv\Scripts\activate
 pip install -r requirements.txt
+copy .env.example .env
 ```
 
-Create your environment file:
-
-```bash
-cp .env.example .env
-```
-
-For local SQLite development, make sure `.env` includes:
+Edit `backend/.env` with your real credentials.
 
 ```env
-DATABASE_URL=sqlite:///./alalai.db
+DATABASE_URL=postgresql://...
+
 SECRET_KEY=change-this
 JWT_SECRET_KEY=change-this
 JWT_ALGORITHM=HS256
-OPENAI_API_KEY=your-openai-api-key
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-5.4-mini
+OPENAI_TEMPERATURE=0
+
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_STORAGE_BUCKET=complaint-photos
+
 FRONTEND_URL=http://localhost:3000
-MAIL_USERNAME=your-gmail-address@gmail.com
-MAIL_PASSWORD=your-16-character-gmail-app-password
-MAIL_FROM=your-gmail-address@gmail.com
-MAIL_PORT=587
-MAIL_SERVER=smtp.gmail.com
-MAIL_STARTTLS=True
-MAIL_SSL_TLS=False
 ```
 
 Run the backend:
 
 ```bash
-export DATABASE_URL='sqlite:///./alalai.db'
-.venv/Scripts/python.exe -m uvicorn app.main:app --reload
+uvicorn app.main:app --reload
 ```
 
 API docs:
 
 ```text
-http://127.0.0.1:8000/docs
-```
-
-Health check:
-
-```bash
-curl http://127.0.0.1:8000/
-```
-
-Expected response:
-
-```json
-{"app":"AlalAI","status":"running"}
-```
-
-## Seed Demo Data
-
-To add demo users and sample complaints:
-
-```bash
-cd backend
-export DATABASE_URL='sqlite:///./alalai.db'
-.venv/Scripts/python.exe seed_users.py
-```
-
-Demo users from the seed script include:
-
-```text
-Citizen: smilebigsun@yahoo.com / sebo123
-Admin:   dianecoding@gmail.com / diane123
-```
-
-## Test Backend Endpoints
-
-Login as a citizen:
-
-```bash
-TOKEN=$(
-  curl -s -X POST http://127.0.0.1:8000/api/auth/login \
-    -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=smilebigsun@yahoo.com&password=sebo123" \
-  | python -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
-)
-```
-
-View citizen reports:
-
-```bash
-curl -H "Authorization: Bearer $TOKEN" \
-  http://127.0.0.1:8000/api/reports/mine
-```
-
-View map data:
-
-```bash
-curl -H "Authorization: Bearer $TOKEN" \
-  http://127.0.0.1:8000/api/reports/map
-```
-
-Ask the chatbot:
-
-```bash
-curl -s -X POST http://127.0.0.1:8000/api/chat/ \
-  -H "Content-Type: application/json" \
-  -d '{"message":"What are the upcoming events?"}'
-```
-
-Interactive chatbot test:
-
-```bash
-while true; do
-  read -p "Ask AlalAI: " q
-  [ -z "$q" ] && break
-  curl -s -X POST http://127.0.0.1:8000/api/chat/ \
-    -H "Content-Type: application/json" \
-    -d "{\"message\":\"$q\"}" \
-    | python -c "import sys,json; print(json.load(sys.stdin)['reply'])"
-  echo
-done
+http://localhost:8000/docs
 ```
 
 ## Frontend Setup
 
-From the repository root:
-
 ```bash
 cd frontend
 npm install
-```
-
-Create a local env file if needed:
-
-```bash
-cp .env.example .env.local
-```
-
-Common frontend variables:
-
-```env
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
-NEXT_PUBLIC_MAPTILER_KEY=your-maptiler-key
-```
-
-Run the frontend:
-
-```bash
 npm run dev
 ```
 
-Open:
+App URL:
 
 ```text
 http://localhost:3000
 ```
 
-## Deployment Notes
-
-The backend includes `backend/vercel.json` for Vercel Python deployment. For deployment, configure environment variables in the hosting provider:
+The frontend uses `NEXT_PUBLIC_API_URL` when configured. It should point to the backend API prefix, for example:
 
 ```env
-DATABASE_URL=postgresql://...
-SECRET_KEY=...
-JWT_SECRET_KEY=...
-JWT_ALGORITHM=HS256
-OPENAI_API_KEY=...
-OPENAI_MODEL=gpt-4o-mini
-FRONTEND_URL=https://your-frontend-domain.com
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-If using Supabase/PostgreSQL, `psycopg2-binary` must be installed from `backend/requirements.txt`.
+## Supabase Photo Uploads
 
-For Gmail email notifications, use a Google App Password rather than your regular Gmail password. Gmail SMTP settings are:
+Complaint photos are uploaded by the backend to Supabase Storage.
+
+Create a Supabase Storage bucket named:
 
 ```text
-Server: smtp.gmail.com
-Port: 587 with STARTTLS, or 465 with SSL/TLS
-Username: your Gmail address
-Password: your 16-character Google App Password
+complaint-photos
 ```
 
-## Useful Commands
+Then set:
 
-Backend:
+```env
+SUPABASE_STORAGE_BUCKET=complaint-photos
+```
+
+Allowed photo formats:
+
+- JPG/JPEG
+- PNG
+- WEBP
+
+For demo use, the bucket can be public so stored photo URLs can be displayed directly in the frontend. For safer backend uploads, set `SUPABASE_SERVICE_ROLE_KEY` in the backend environment. If only the anon key is used, Supabase Storage policies must allow inserts into the selected bucket.
+
+## Core API Endpoints
+
+### Auth
+
+```http
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/me
+```
+
+### Complaints / Reports
+
+File a complaint:
+
+```http
+POST /api/reports/
+```
+
+Form data:
+
+```text
+address
+description
+latitude optional
+longitude optional
+photo optional
+```
+
+Get citizen's reports:
+
+```http
+GET /api/reports/mine
+```
+
+Get assigned admin reports:
+
+```http
+GET /api/reports/assigned
+```
+
+Update complaint status:
+
+```http
+PATCH /api/reports/{report_id}/status
+```
+
+Body:
+
+```json
+{
+  "status": "in-progress",
+  "admin_comment": "Optional admin note"
+}
+```
+
+Supported complaint statuses:
+
+```text
+pending
+in-progress
+for-review
+resolved
+```
+
+Supported priority levels:
+
+```text
+low
+medium
+high
+urgent
+```
+
+### Monthly Reports
+
+Generate a monthly report:
+
+```http
+POST /api/reports/monthly/{YYYY-MM}
+```
+
+Get one monthly report:
+
+```http
+GET /api/reports/monthly/{YYYY-MM}
+```
+
+Get all monthly reports:
+
+```http
+GET /api/reports/monthly
+```
+
+Monthly reports are not generated automatically. An admin or scheduled job must call the `POST` endpoint first.
+
+### Chatbot
+
+```http
+POST /api/chat/
+```
+
+Body:
+
+```json
+{
+  "message": "What is the status of my complaint?"
+}
+```
+
+The chatbot reads from:
+
+```text
+backend/app/seed/barangay_info_mock.md
+```
+
+Demo complaint status IDs:
+
+```text
+1001
+1002
+1003
+```
+
+If the user asks for "my complaint status" without giving an ID, the chatbot returns the default demo complaint `1001`.
+
+## Test Accounts
+
+Citizen:
+
+```text
+Email: smilebigsun@yahoo.com
+Password: sebo123
+```
+
+Admin:
+
+```text
+Email: dianecoding@gmail.com
+Password: diane123
+```
+
+## Status Updates
+
+Status update payload only needs:
+
+```json
+{
+  "status": "for-review",
+  "admin_comment": "The issue has been addressed. Please confirm."
+}
+```
+
+## AI Behavior
+
+When a complaint is filed, the backend:
+
+1. Runs AI tagging and summary generation.
+2. Assigns a priority level.
+3. Checks for possible duplicates.
+4. Auto-assigns the complaint to an admin based on location/workload.
+5. Saves the complaint.
+
+Monthly report generation calculates deterministic metrics first, then asks AI for forecast and suggested actions.
+
+## Tests
+
+Run backend tests:
 
 ```bash
 cd backend
-.venv/Scripts/python.exe -m uvicorn app.main:app --reload
+.\.venv\Scripts\python.exe -m unittest discover tests
 ```
 
-Frontend:
+Run frontend lint:
 
 ```bash
 cd frontend
-npm run dev
+npm run lint
 ```
 
-Check git changes:
+## Demo Notes
 
-```bash
-git status
-```
-
-## Current POC Limitations
-
-- Built for one barangay only
-- Mock barangay knowledge base
-- No SMS or email notifications
-- No offline mode
-- AI behavior depends on prompt quality and OpenAI availability
-- Production hardening is still needed for auth, permissions, storage, logging, and migrations
+- The app is scoped for a single barangay demo.
+- The chatbot knowledge base is mock data.
+- Monthly reports must be generated manually through the backend endpoint.
+- Supabase bucket/policies must be configured before photo upload works.
+- Keep real `.env` secrets out of commits.
