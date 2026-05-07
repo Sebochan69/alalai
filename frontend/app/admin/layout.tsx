@@ -1,4 +1,3 @@
-﻿import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   AdminSidebarNav,
@@ -6,6 +5,8 @@ import {
   adminNavItems,
 } from "@/components/admin-sidebar-nav";
 import { getAdminComplaints, getCurrentUser } from "@/lib/api";
+import { SessionGuard } from "@/components/session-guard";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export default async function AdminLayout({
   children,
@@ -30,6 +31,7 @@ export default async function AdminLayout({
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
+      <SessionGuard />
       <AdminNav displayName={displayName} initials={initials} />
       <div className="flex-1 flex overflow-hidden">
         <AdminSidebar pending={pending} inProgress={inProgress} />
@@ -154,29 +156,7 @@ function AdminSidebar({
             </div>
           </div>
         </div>
-        <Link
-          href="/login"
-          className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all group"
-        >
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="shrink-0 group-hover:text-red-400 transition-colors"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          <span className="font-semibold group-hover:text-red-400 transition-colors">
-            Sign out
-          </span>
-        </Link>
+        <SignOutButton className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all group" />
       </div>
     </aside>
   );

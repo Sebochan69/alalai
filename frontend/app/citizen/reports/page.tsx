@@ -150,7 +150,7 @@ export default async function MyReportsPage() {
     <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
       {/* ── Header ────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-3 mb-6">
-        <div>
+        <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-widest text-accent mb-1">
             My Reports
           </p>
@@ -181,7 +181,7 @@ export default async function MyReportsPage() {
       </div>
 
       {/* ── Stats strip ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-2 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
         {[
           { label: "Total Filed", value: counts.all, color: "text-foreground" },
           { label: "Pending", value: counts.pending, color: "text-amber-500" },
@@ -235,7 +235,7 @@ export default async function MyReportsPage() {
 
       {/* ── Empty state ───────────────────────────────────────────────── */}
       {sorted.length === 0 && (
-        <div className="bg-card border border-border rounded-2xl p-16 text-center shadow-sm">
+        <div className="bg-card border border-border rounded-2xl p-8 sm:p-16 text-center shadow-sm">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4 text-3xl">
             📋
           </div>
@@ -287,10 +287,10 @@ export default async function MyReportsPage() {
                       {/* Top row */}
                       <div className="flex items-start justify-between gap-3 mb-1">
                         <div className="min-w-0">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5 truncate">
                             {report.tagging} · #{report.id}
                           </p>
-                          <p className="font-black text-sm leading-snug group-hover:text-accent transition-colors">
+                          <p className="font-black text-sm leading-snug group-hover:text-accent transition-colors line-clamp-2">
                             {report.title ?? report.description}
                           </p>
                         </div>
@@ -344,8 +344,8 @@ export default async function MyReportsPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-border/40 bg-muted/20 px-4 py-2.5 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="border-t border-border/40 bg-muted/20 px-4 py-2.5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-x-3 gap-y-1 flex-wrap min-w-0">
                     <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <svg
                         width="10"
@@ -371,7 +371,9 @@ export default async function MyReportsPage() {
                       </svg>
                       {formatDate(report.created_at)}
                     </span>
-                    <span className="text-muted-foreground/40">·</span>
+                    <span className="text-muted-foreground/40 hidden min-[360px]:inline">
+                      ·
+                    </span>
                     <span className="text-xs text-muted-foreground">
                       {timeAgo(report.created_at)}
                     </span>
@@ -382,7 +384,7 @@ export default async function MyReportsPage() {
                       {p.label}
                     </span>
                   </div>
-                  <span className="flex items-center gap-1 text-xs font-bold text-accent group-hover:gap-2 transition-all">
+                  <span className="flex items-center gap-1 text-xs font-bold text-accent group-hover:gap-2 transition-all shrink-0">
                     View
                     <svg
                       width="11"

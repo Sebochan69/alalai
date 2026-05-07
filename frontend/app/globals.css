@@ -156,6 +156,51 @@
 }
 
 @layer utilities {
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: color-mix(in oklch, var(--muted) 72%, transparent);
+  }
+
+  .dark .skeleton-shimmer {
+    background-color: color-mix(in oklch, var(--muted) 54%, transparent);
+  }
+
+  .skeleton-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(255 255 255 / 0.16) 48%,
+      transparent 100%
+    );
+    animation: skeleton-sweep 1.45s ease-in-out infinite;
+  }
+
+  .dark .skeleton-shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(255 255 255 / 0.08) 48%,
+      transparent 100%
+    );
+  }
+
+  @keyframes skeleton-sweep {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer::after {
+      animation: none;
+    }
+  }
+
   .card-shadow {
     box-shadow:
       0 1px 3px 0 rgb(0 0 0 / 0.06),

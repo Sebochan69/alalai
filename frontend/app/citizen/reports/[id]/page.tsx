@@ -192,7 +192,7 @@ export default async function CitizenReportDetailPage({
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-3 mb-1">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground truncate">
                   {report.tagging} · #{report.id}
                 </p>
                 <span
@@ -201,11 +201,11 @@ export default async function CitizenReportDetailPage({
                   {s.label}
                 </span>
               </div>
-              <h1 className="text-lg font-black tracking-tight leading-snug mb-2">
+              <h1 className="text-lg font-black tracking-tight leading-snug mb-2 line-clamp-3">
                 {report.title ?? report.description}
               </h1>
               <div className="flex items-center flex-wrap gap-x-4 gap-y-1">
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1 text-xs text-muted-foreground min-w-0">
                   <svg
                     width="10"
                     height="10"
@@ -215,7 +215,7 @@ export default async function CitizenReportDetailPage({
                   >
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                   </svg>
-                  {report.location}
+                  <span className="truncate">{report.location}</span>
                 </span>
                 <span
                   className={`flex items-center gap-1.5 text-xs font-bold px-2 py-0.5 rounded-full border ${p.bg} ${p.color}`}
@@ -358,12 +358,12 @@ export default async function CitizenReportDetailPage({
           ].map((row) => (
             <div
               key={row.label}
-              className="px-5 py-3 flex items-start justify-between gap-4"
+              className="px-5 py-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-4"
             >
               <span className="text-xs text-muted-foreground shrink-0">
                 {row.label}
               </span>
-              <span className="text-xs font-semibold text-right">
+              <span className="text-xs font-semibold sm:text-right break-words">
                 {row.value}
               </span>
             </div>
@@ -406,8 +406,8 @@ export default async function CitizenReportDetailPage({
 
       {/* ── Resolve action (for-review only) ────────────────────── */}
       {report.status === "for-review" && (
-        <div className="bg-emerald-500/5 border border-emerald-500/25 rounded-2xl p-5 mb-4 flex items-center justify-between gap-4">
-          <div>
+        <div className="bg-emerald-500/5 border border-emerald-500/25 rounded-2xl p-5 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-0.5">
               Issue fully resolved?
             </p>

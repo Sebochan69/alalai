@@ -39,6 +39,33 @@ export function clearToken() {
   document.cookie = "alalai_token=; path=/; max-age=0";
 }
 
+function isSessionExpired(status: number, detail = "") {
+  const text = detail.toLowerCase();
+  return (
+    status === 401 ||
+    text.includes("invalid token") ||
+    text.includes("not authenticated") ||
+    text.includes("could not validate credentials")
+  );
+}
+
+function expireClientSession() {
+  if (typeof window === "undefined") return;
+  clearToken();
+  if (!window.location.pathname.startsWith("/login")) {
+    window.location.replace("/login?session=expired");
+  }
+}
+
+async function handleAuthFailure(res: Response) {
+  const detail = await res
+    .clone()
+    .text()
+    .catch(() => "");
+  if (isSessionExpired(res.status, detail)) expireClientSession();
+  return detail;
+}
+
 async function resolveToken(explicit?: string): Promise<string | null> {
   if (explicit) return explicit;
   if (typeof window !== "undefined") {
@@ -67,7 +94,10 @@ export async function getCurrentUser(): Promise<User | null> {
       headers: authHeader(token),
       cache: "no-store",
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      await handleAuthFailure(res);
+      return null;
+    }
     const raw = await res.json();
     return {
       id: String(raw.id),
@@ -282,7 +312,10 @@ export async function getMyComplaints(_token?: string): Promise<Complaint[]> {
   const res = await fetch(`${API_BASE}/reports/mine`, {
     headers: authHeader(token),
   });
-  if (!res.ok) return [];
+  if (!res.ok) {
+    await handleAuthFailure(res);
+    return [];
+  }
   const data = await res.json();
   return Array.isArray(data) ? data.map(mapReport) : [];
 }
@@ -296,7 +329,10 @@ export async function getComplaint(
   const res = await fetch(`${API_BASE}/complaints/${id}`, {
     headers: authHeader(token),
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    await handleAuthFailure(res);
+    return null;
+  }
   return mapReport(await res.json());
 }
 
@@ -318,7 +354,7 @@ export async function createComplaint(
     headers: authHeader(token),
     body: form,
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw new Error(await handleAuthFailure(res));
   return mapReport(await res.json());
 }
 
@@ -334,7 +370,7 @@ export async function closeComplaint(
     body: JSON.stringify({ status: "resolved" }),
   });
   if (!res.ok) {
-    const detail = await res.text();
+    const detail = await handleAuthFailure(res);
 
     if (res.status === 403) {
       const fallback = await fetch(`${API_BASE}/complaints/${id}`, {
@@ -343,7 +379,7 @@ export async function closeComplaint(
         body: JSON.stringify({ status: "resolved" }),
       });
       if (fallback.ok) return mapReport(await fallback.json());
-      throw new Error(`${fallback.status} ${await fallback.text()}`);
+      throw new Error(`${fallback.status} ${await handleAuthFailure(fallback)}`);
     }
 
     throw new Error(`${res.status} ${detail}`);
@@ -361,7 +397,10 @@ export async function getAdminComplaints(
   const res = await fetch(`${API_BASE}/reports/assigned`, {
     headers: authHeader(token),
   });
-  if (!res.ok) return [];
+  if (!res.ok) {
+    await handleAuthFailure(res);
+    return [];
+  }
   const data = await res.json();
   return Array.isArray(data) ? data.map(mapReport) : [];
 }
@@ -375,7 +414,10 @@ export async function getAdminComplaint(
   const res = await fetch(`${API_BASE}/complaints/${id}`, {
     headers: authHeader(token),
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    await handleAuthFailure(res);
+    return null;
+  }
   return mapReport(await res.json());
 }
 
@@ -394,7 +436,7 @@ export async function updateComplaint(
       headers: { ...authHeader(token), "Content-Type": "application/json" },
       body: JSON.stringify({ assigned_id: dto.assigned }),
     });
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) throw new Error(await handleAuthFailure(res));
     latest = mapReport(await res.json());
   }
 
@@ -411,7 +453,7 @@ export async function updateComplaint(
       headers: { ...authHeader(token), "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) throw new Error(await handleAuthFailure(res));
     latest = mapReport(await res.json());
   }
 
@@ -433,7 +475,7 @@ export async function getMonthlyReport(
     headers: authHeader(token),
   });
   if (!res.ok) {
-    const detail = await res.text();
+    const detail = await handleAuthFailure(res);
     if (
       res.status === 404 ||
       detail.toLowerCase().includes("monthly report not found")
@@ -469,7 +511,10 @@ export async function getMapData(_token?: string): Promise<Complaint[]> {
   const res = await fetch(`${API_BASE}/reports/map`, {
     headers: authHeader(token),
   });
-  if (!res.ok) return [];
+  if (!res.ok) {
+    await handleAuthFailure(res);
+    return [];
+  }
   const data = await res.json();
   const items = Array.isArray(data) ? data : [];
   return items

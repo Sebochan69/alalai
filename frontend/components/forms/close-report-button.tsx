@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { clearToken, closeComplaint } from "@/lib/api";
+import { closeComplaint } from "@/lib/api";
 
 export function CloseReportButton({ reportId }: { reportId: string }) {
   const router = useRouter();
@@ -23,7 +23,6 @@ export function CloseReportButton({ reportId }: { reportId: string }) {
         message.includes("401");
 
       if (authError) {
-        clearToken();
         setError("Session expired. Please sign in again to confirm.");
         return;
       }

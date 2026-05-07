@@ -2,19 +2,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MyReportsLoading() {
   return (
-    <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-5 max-w-4xl">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full space-y-5">
       {/* Header row */}
       <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
+        <div className="space-y-2 min-w-0 flex-1">
           <Skeleton className="h-3.5 w-24" />
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64" />
+          <Skeleton className="h-8 w-44 sm:w-48" />
+          <Skeleton className="h-4 w-full max-w-64" />
         </div>
-        <Skeleton className="h-10 w-32 rounded-xl shrink-0" />
+        <Skeleton className="h-9 w-16 sm:h-10 sm:w-32 rounded-xl shrink-0" />
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
@@ -28,7 +28,7 @@ export default function MyReportsLoading() {
 
       {/* Tab chips */}
       <div className="flex items-center gap-2 flex-wrap">
-        {["w-20", "w-24", "w-22", "w-24", "w-20"].map((widthClass, i) => (
+        {["w-20", "w-24", "w-[88px]", "w-24", "w-20"].map((widthClass, i) => (
           <Skeleton
             key={i}
             className={`h-8 rounded-full ${widthClass}`}
@@ -51,7 +51,7 @@ export default function MyReportsLoading() {
                 <div className="flex-1 min-w-0 space-y-2">
                   {/* Top row: tag + badge */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1.5 flex-1">
+                    <div className="space-y-1.5 flex-1 min-w-0">
                       <Skeleton className="h-2.5 w-40" />
                       <Skeleton className="h-4 w-3/4" />
                     </div>
@@ -75,8 +75,8 @@ export default function MyReportsLoading() {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-border/40 bg-muted/20 px-4 py-2.5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            <div className="border-t border-border/40 bg-muted/20 px-4 py-2.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-wrap min-w-0">
                 <Skeleton className="h-3 w-20" />
                 <Skeleton className="h-3 w-10" />
               </div>
