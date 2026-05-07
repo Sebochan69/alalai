@@ -195,6 +195,15 @@ def create_monthly_report(
     return report_to_dict(report)
 
 
+@router.get("/monthly", response_model=list[MonthlyReportOut])
+def get_all_monthly_reports(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    reports = db.query(Report).order_by(Report.month.desc()).all()
+    return [report_to_dict(report) for report in reports]
+
+
 @router.get("/monthly/{month}", response_model=MonthlyReportOut)
 def get_monthly_report(
     month: str,
