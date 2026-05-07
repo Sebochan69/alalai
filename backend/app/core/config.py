@@ -23,11 +23,20 @@ class Settings(BaseSettings):
 
     FRONTEND_URL: str = "http://localhost:5173"
 
+    MAIL_USERNAME: str = ""
+    MAIL_PASSWORD: str = ""
+    MAIL_FROM: str = ""
+    MAIL_FROM_NAME: str = "AlalAI"
+    MAIL_PORT: int = 587
+    MAIL_SERVER: str = "smtp.gmail.com"
+    MAIL_STARTTLS: bool = True
+    MAIL_SSL_TLS: bool = False
+    MAIL_SUPPRESS_SEND: bool = False
+
     @property
     def ALLOWED_ORIGINS(self) -> List[str]:
         return [origin.strip() for origin in self.FRONTEND_URL.split(",")]
 
-    MAX_REPORTS_PER_USER: int = 3
     DUPLICATE_SIMILARITY_THRESHOLD: float = 0.82
 
     DEFAULT_BARANGAY_LAT: float = 14.5995
