@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { getAdminComplaints } from "@/lib/api";
+import { getAdminComplaints, getCurrentUser } from "@/lib/api";
 import { AdminStats, AdminAIBadge } from "@/components/admin-stats";
 import type { StatItem } from "@/components/admin-stats";
 
@@ -113,7 +113,15 @@ function IconResolved() {
 }
 
 export default async function AdminDashboard() {
-  const reports = await getAdminComplaints();
+  const [reports, user] = await Promise.all([
+    getAdminComplaints(),
+    getCurrentUser(),
+  ]);
+  const adminName = user?.username || "Admin";
+  const currentMonth = new Date().toLocaleDateString("en-PH", {
+    month: "long",
+    year: "numeric",
+  });
   const total = reports.length;
   const pending = reports.filter((r) => r.status === "pending").length;
   const inProgress = reports.filter(
@@ -125,7 +133,7 @@ export default async function AdminDashboard() {
     {
       label: "Total Assigned",
       value: total,
-      sub: "across zones A–C",
+      sub: "assigned to you",
       colorClass: "text-foreground",
       circleBg: "bg-violet-600",
       border: "border-violet-500/25 hover:border-violet-500/50",
@@ -175,14 +183,14 @@ export default async function AdminDashboard() {
             Admin Dashboard
           </p>
           <h1 className="text-2xl font-black tracking-tight">
-            Good day, Admin 1 👋
+            Good day, {adminName} 👋
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Managing{" "}
+            Managing reports for{" "}
             <span className="text-violet-500 dark:text-violet-400 font-semibold">
-              Zones A, B, C
+              {user?.location_assigned || "your assigned location"}
             </span>{" "}
-            — May 2026
+            — {currentMonth}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">

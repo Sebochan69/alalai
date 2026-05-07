@@ -7,6 +7,7 @@ import { getMyComplaints, getCurrentUser } from "@/lib/api";
 import CitizenChatWidget from "@/components/citizen-chat-widget";
 import { SignOutButton } from "@/components/sign-out-button";
 import { SessionGuard } from "@/components/session-guard";
+import { ChangePasswordButton } from "@/components/change-password-button";
 
 export default async function CitizenLayout({
   children,
@@ -31,15 +32,11 @@ export default async function CitizenLayout({
       <SessionGuard />
       <CitizenNav displayName={displayName} initials={initials} />
       <div className="flex-1 flex overflow-hidden">
-        <CitizenSidebar
-          total={total}
-          displayName={displayName}
-          initials={initials}
-        />
+        <CitizenSidebar total={total} />
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
       </div>
       <CitizenMobileNav />
-      <CitizenChatWidget />
+      <CitizenChatWidget userInitials={initials} />
     </div>
   );
 }
@@ -68,6 +65,10 @@ function CitizenNav({
       </div>
       <div className="flex items-center gap-3">
         <ThemeToggle />
+        <ChangePasswordButton
+          compact
+          className="md:hidden w-9 h-9 rounded-xl border border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all flex items-center justify-center cursor-pointer"
+        />
         <div className="flex items-center gap-3 pl-4 border-l border-border">
           <div className="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm font-extrabold shrink-0">
             {initials}
@@ -86,15 +87,7 @@ function CitizenNav({
   );
 }
 
-function CitizenSidebar({
-  total,
-  displayName,
-  initials,
-}: {
-  total: number;
-  displayName: string;
-  initials: string;
-}) {
+function CitizenSidebar({ total }: { total: number }) {
   return (
     <aside className="w-64 border-r border-border bg-card flex-col hidden md:flex shrink-0 overflow-hidden">
       {/* Nav links */}
@@ -148,17 +141,8 @@ function CitizenSidebar({
           </p>
         </div>
 
-        {/* User + sign out */}
-        <div className="flex items-center gap-3 px-1 pt-1">
-          <div className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center text-xs font-extrabold shrink-0">
-            {initials}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold truncate">{displayName}</p>
-            <p className="text-xs text-muted-foreground">Citizen</p>
-          </div>
-        </div>
-        <SignOutButton className="flex items-center justify-center gap-2 w-full h-9 rounded-xl border border-border/80 text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/40 transition-all" />
+        <ChangePasswordButton className="flex items-center justify-center gap-2 w-full h-9 rounded-xl border border-border/80 text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/40 transition-all cursor-pointer" />
+        <SignOutButton className="flex items-center justify-center gap-2 w-full h-9 rounded-xl border border-border/80 text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/40 transition-all cursor-pointer" />
       </div>
     </aside>
   );

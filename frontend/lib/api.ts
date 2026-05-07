@@ -13,6 +13,9 @@
 
 import type {
   AuthResponse,
+  AdminUser,
+  AdminUserDto,
+  ChangePasswordDto,
   Complaint,
   CreateComplaintDto,
   LoginDto,
@@ -244,6 +247,31 @@ function mapReport(r: any): Complaint {
   };
 }
 
+function mapUser(raw: ApiRecord): User {
+  return {
+    id: String(raw.id),
+    username: firstString(raw.username, raw.name) ?? "",
+    email_address: firstString(raw.email_address, raw.email) ?? "",
+    role: ((firstString(raw.role) ?? "citizen").toLowerCase() === "admin"
+      ? "admin"
+      : "citizen") as User["role"],
+    location_assigned: firstString(raw.location_assigned) ?? "",
+    created_at: firstString(raw.created_at),
+  };
+}
+
+function mapAdmin(raw: ApiRecord): AdminUser {
+  return {
+    ...mapUser({ ...raw, role: "admin" }),
+    active_reports:
+      typeof raw.active_reports === "number"
+        ? raw.active_reports
+        : typeof raw.activeReports === "number"
+          ? raw.activeReports
+          : undefined,
+  };
+}
+
 // --- Auth --------------------------------------------------------------------
 
 /**
@@ -278,30 +306,149 @@ export async function login(dto: LoginDto): Promise<AuthResponse> {
   if (!meRes.ok) throw new Error("Failed to load user profile");
   const raw = await meRes.json();
 
-  const user: User = {
-    id: String(raw.id),
-    username: raw.username,
-    email_address: raw.email_address,
-    role: (raw.role ?? "citizen").toLowerCase() as User["role"],
-    location_assigned: raw.location_assigned ?? "",
-  };
+  const user = mapUser(raw);
 
   return { token: data.access_token, user };
 }
 
 /**
- * Register - no BE endpoint yet, temporary mock.
+ * POST /api/auth/register - citizen registration.
  */
-export async function register(dto: RegisterDto): Promise<AuthResponse> {
-  await Promise.resolve();
-  const user: User = {
-    id: "mock-" + Date.now(),
-    username: dto.username,
-    email_address: dto.email,
-    location_assigned: dto.location_assigned ?? "",
-    role: "citizen",
-  };
-  return { token: "mock-register-token", user };
+export async function register(dto: RegisterDto): Promise<void> {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: dto.username,
+      email_address: dto.email,
+      password: dto.password,
+      location_assigned: dto.location_assigned ?? "",
+    }),
+  });
+  if (!res.ok) {
+    let detail = "Registration failed. Please try again.";
+    try {
+      const err = await res.json();
+      if (err?.detail) detail = err.detail;
+    } catch {
+      detail = await res.text().catch(() => detail);
+    }
+    throw new Error(detail);
+  }
+
+  await res.text().catch(() => "");
+}
+
+export async function changePassword(dto: ChangePasswordDto): Promise<void> {
+  const token = await resolveToken();
+  const payload = JSON.stringify(dto);
+
+  let lastDetail = "Could not change password. Please try again.";
+  const res = await fetch(`${API_BASE}/auth/change-password`, {
+    method: "POST",
+    headers: { ...authHeader(token), "Content-Type": "application/json" },
+    body: payload,
+  });
+  if (res.ok) return;
+  lastDetail = await handleAuthFailure(res);
+  throw new Error(lastDetail || "Could not change password. Please try again.");
+}
+
+export async function getAdmins(): Promise<AdminUser[]> {
+  const token = await resolveToken();
+  const res = await fetch(`${API_BASE}/users/admins`, {
+    headers: { ...authHeader(token), "Cache-Control": "no-cache" },
+    cache: "no-store",
+  });
+  if (res.ok) {
+    const data = await res.json();
+    return Array.isArray(data) ? data.map(mapAdmin) : [];
+  }
+
+  if (res.status !== 404) {
+    await handleAuthFailure(res);
+    return [];
+  }
+
+  const fallback = await fetch(`${API_BASE}/users/`, {
+    headers: { ...authHeader(token), "Cache-Control": "no-cache" },
+    cache: "no-store",
+  });
+  if (!fallback.ok) {
+    await handleAuthFailure(fallback);
+    return [];
+  }
+  const data = await fallback.json();
+  return Array.isArray(data)
+    ? data
+        .map((item: ApiRecord) => mapUser(item))
+        .filter((user: User) => user.role === "admin")
+        .map((user: User) => ({ ...user, active_reports: undefined }))
+    : [];
+}
+
+export async function createAdmin(
+  dto: Required<AdminUserDto>,
+): Promise<AdminUser> {
+  const token = await resolveToken();
+  const res = await fetch(`${API_BASE}/users/admins`, {
+    method: "POST",
+    headers: { ...authHeader(token), "Content-Type": "application/json" },
+    body: JSON.stringify(dto),
+  });
+  if (!res.ok) throw new Error(await handleAuthFailure(res));
+  return mapAdmin(await res.json());
+}
+
+export async function updateAdmin(
+  id: string,
+  dto: AdminUserDto,
+): Promise<AdminUser> {
+  const token = await resolveToken();
+  const body = JSON.stringify(
+    Object.fromEntries(
+      Object.entries(dto).filter(
+        ([, value]) => value !== undefined && value !== "",
+      ),
+    ),
+  );
+  const endpoints = [
+    `${API_BASE}/users/admins/${id}`,
+    `${API_BASE}/users/${id}`,
+  ];
+
+  let lastDetail = "Could not update admin.";
+  for (const endpoint of endpoints) {
+    const res = await fetch(endpoint, {
+      method: "PATCH",
+      headers: { ...authHeader(token), "Content-Type": "application/json" },
+      body,
+    });
+    if (res.ok) return mapAdmin(await res.json());
+    lastDetail = await handleAuthFailure(res);
+    if (res.status !== 404 && res.status !== 405) break;
+  }
+  throw new Error(lastDetail || "Could not update admin.");
+}
+
+export async function deleteAdmin(id: string): Promise<void> {
+  const token = await resolveToken();
+  const endpoints = [
+    `${API_BASE}/users/admins/${id}`,
+    `${API_BASE}/users/${id}`,
+  ];
+
+  let lastDetail = "Could not delete admin.";
+  for (const endpoint of endpoints) {
+    const res = await fetch(endpoint, {
+      method: "DELETE",
+      headers: authHeader(token),
+    });
+    if (res.ok || res.status === 204) return;
+    lastDetail = await handleAuthFailure(res);
+    if (res.status !== 404 && res.status !== 405) break;
+  }
+  throw new Error(lastDetail || "Could not delete admin.");
 }
 
 // --- Reports (citizen) -------------------------------------------------------
@@ -441,8 +588,8 @@ export async function updateComplaint(
   }
 
   if (dto.status || dto.adminComment != null) {
-    const existingStatus =
-      latest?.status ?? (await getAdminComplaint(id, token ?? undefined))?.status;
+    const existing = await getAdminComplaint(id, token ?? undefined);
+    const existingStatus = latest?.status ?? existing?.status;
     const payload: Record<string, unknown> = {
       status: dto.status ?? existingStatus ?? "pending",
     };

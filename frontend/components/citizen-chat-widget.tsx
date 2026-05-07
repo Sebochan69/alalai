@@ -32,7 +32,7 @@ const BOT_RESPONSES: { keywords: string[]; reply: string }[] = [
       "hoy",
     ],
     reply:
-      "Mabuhay! I'm **Lingkod AI** - your barangay information assistant.\n\nI can help you with:\n-  Emergency hotlines\n-  Evacuation centers\n-  Barangay reminders & schedules\n-  General barangay info\n\nWhat do you need today?",
+      "Mabuhay! I'm **Lingkod AI** - your barangay information assistant.\n\nI can help you with:\n-  Emergency hotlines\n-  Evacuation centers\n-  Report status updates\n-  General barangay info\n\nWhat do you need today?",
   },
 
   // Emergency hotlines
@@ -261,7 +261,7 @@ const BOT_RESPONSES: { keywords: string[]; reply: string }[] = [
       "about",
     ],
     reply:
-      "Here's everything I can help you with:\n\n **Hotlines**  emergency, police, fire, medical\n **Evacuation Centers**  locations & capacity\n **Typhoon & Flood**  advisories & go-bag tips\n **Garbage Schedule**  collection days\n **Curfew**  barangay ordinance\n **Documents**  clearance, cedula, permits\n **Office Hours**  barangay hall schedule\n **VAWC / Abuse**  confidential help lines\n **Senior / PWD**  benefits & services\n\nJust type your question!",
+      "Here's everything I can help you with:\n\n **Hotlines**  emergency, police, fire, medical\n **Evacuation Centers**  locations & capacity\n **Typhoon & Flood**  advisories & go-bag tips\n **Garbage Schedule**  collection days\n **Curfew**  barangay ordinance\n **Report Status**  pending, in progress, review, resolved\n **Office Hours**  barangay hall schedule\n **VAWC / Abuse**  confidential help lines\n **Senior / PWD**  benefits & services\n\nJust type your question!",
   },
 ];
 
@@ -269,7 +269,7 @@ const QUICK_REPLIES = [
   "Emergency hotlines",
   "Evacuation centers",
   "Garbage schedule",
-  "Barangay documents",
+  "Report status",
 ];
 
 function getBotReply(input: string): string {
@@ -339,10 +339,10 @@ function BotAvatar() {
   );
 }
 
-function UserAvatar() {
+function UserAvatar({ initials }: { initials: string }) {
   return (
     <div className="w-8 h-8 rounded-full bg-muted border border-border/60 flex items-center justify-center shrink-0 text-[11px] font-extrabold text-muted-foreground">
-      JD
+      {initials}
     </div>
   );
 }
@@ -360,13 +360,19 @@ function TypingIndicator() {
   );
 }
 
-function MessageBubble({ msg }: { msg: Message }) {
+function MessageBubble({
+  msg,
+  userInitials,
+}: {
+  msg: Message;
+  userInitials: string;
+}) {
   const isUser = msg.role === "user";
   return (
     <div
       className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}
     >
-      {isUser ? <UserAvatar /> : <BotAvatar />}
+      {isUser ? <UserAvatar initials={userInitials} /> : <BotAvatar />}
       <div
         className={`flex flex-col gap-1 max-w-[72%] ${isUser ? "items-end" : "items-start"}`}
       >
@@ -389,12 +395,16 @@ function MessageBubble({ msg }: { msg: Message }) {
 const INITIAL_MESSAGE: Omit<Message, "timestamp"> & { timestamp?: Date } = {
   id: 0,
   role: "bot",
-  text: "Mabuhay! I'm **Lingkod AI** - your barangay information assistant.\n\nI can answer questions about hotlines, evacuation centers, schedules, and barangay services. How can I help?",
+  text: "Mabuhay! I'm **Lingkod AI** - your barangay information assistant.\n\nI can answer questions about hotlines, evacuation centers, schedules, and report status. How can I help?",
 };
 
 //  Main floating widget
 
-export default function CitizenChatWidget() {
+export default function CitizenChatWidget({
+  userInitials = "C",
+}: {
+  userInitials?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => [
     { ...INITIAL_MESSAGE, timestamp: new Date() },
@@ -409,7 +419,6 @@ export default function CitizenChatWidget() {
   useEffect(() => {
     if (open) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      setHasUnread(false);
     }
   }, [messages, isTyping, open]);
 
@@ -446,7 +455,7 @@ export default function CitizenChatWidget() {
       const botMsg: Message = {
         id: nextId.current++,
         role: "bot",
-        text: "Sorry, I'm having trouble connecting right now. Please try again or call the barangay hotline directly.",
+        text: getBotReply(trimmed),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botMsg]);
@@ -549,7 +558,11 @@ export default function CitizenChatWidget() {
             style={{ scrollbarWidth: "thin" }}
           >
             {messages.map((msg) => (
-              <MessageBubble key={msg.id} msg={msg} />
+              <MessageBubble
+                key={msg.id}
+                msg={msg}
+                userInitials={userInitials}
+              />
             ))}
             {isTyping && <TypingIndicator />}
             <div ref={messagesEndRef} />
@@ -586,7 +599,7 @@ export default function CitizenChatWidget() {
                   autoResize(e.target);
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about hotlines, evacuation, schedules"
+                placeholder="Ask about hotlines, evacuation, report status"
                 rows={1}
                 disabled={isTyping}
                 className="flex-1 bg-transparent text-[13px] text-foreground dark:text-white resize-none outline-none placeholder:text-muted-foreground/60 dark:placeholder:text-slate-400 leading-relaxed"

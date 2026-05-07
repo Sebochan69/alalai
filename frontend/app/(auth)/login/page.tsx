@@ -2,14 +2,7 @@
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LoginForm } from "@/components/forms/login-form";
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ role?: string }>;
-}) {
-  const { role } = await searchParams;
-  const isAdmin = role === "admin";
-
+export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Nav */}
@@ -42,22 +35,7 @@ export default async function LoginPage({
       {/* Body */}
       <div className="flex-1 flex items-center justify-center px-5 py-12">
         <div className="w-full max-w-sm">
-          {/* Role switcher */}
-          <div className="flex rounded-2xl border border-border bg-muted/40 p-1 mb-6 gap-1">
-            <Link
-              href="/login"
-              className={`flex-1 text-center text-sm py-2.5 rounded-xl font-bold transition-all ${!isAdmin ? "bg-card shadow-sm text-accent border border-border" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Citizen
-            </Link>
-            <Link
-              href="/login?role=admin"
-              className={`flex-1 text-center text-sm py-2.5 rounded-xl font-bold transition-all ${isAdmin ? "bg-card shadow-sm text-violet-600 dark:text-violet-400 border border-border" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Admin
-            </Link>
-          </div>
-          <LoginForm isAdmin={isAdmin} />
+          <LoginForm />
           <p className="text-center text-xs text-muted-foreground mt-5">
             Don&apos;t have an account?{" "}
             <Link

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { getCurrentUser } from "@/lib/api";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -187,10 +188,19 @@ function BotAvatar() {
   );
 }
 
-function UserAvatar() {
+function initialsFromName(name: string) {
+  const parts = name
+    .trim()
+    .split(/[\s_@.-]+/)
+    .filter(Boolean);
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  return (parts[0] ?? "C").slice(0, 2).toUpperCase();
+}
+
+function UserAvatar({ initials }: { initials: string }) {
   return (
     <div className="w-8 h-8 rounded-full bg-muted border border-border/60 flex items-center justify-center shrink-0 text-[11px] font-extrabold text-muted-foreground">
-      JD
+      {initials}
     </div>
   );
 }
@@ -208,13 +218,19 @@ function TypingIndicator() {
   );
 }
 
-function MessageBubble({ msg }: { msg: Message }) {
+function MessageBubble({
+  msg,
+  userInitials,
+}: {
+  msg: Message;
+  userInitials: string;
+}) {
   const isUser = msg.role === "user";
   return (
     <div
       className={`flex items-end gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
     >
-      {isUser ? <UserAvatar /> : <BotAvatar />}
+      {isUser ? <UserAvatar initials={userInitials} /> : <BotAvatar />}
       <div
         className={`flex flex-col gap-1 max-w-[78%] sm:max-w-[65%] ${isUser ? "items-end" : "items-start"}`}
       >
@@ -241,6 +257,7 @@ export default function CitizenChatPage() {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [userInitials, setUserInitials] = useState("C");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const nextId = useRef(1);
@@ -248,6 +265,16 @@ export default function CitizenChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    let active = true;
+    getCurrentUser().then((user) => {
+      if (active && user?.username) setUserInitials(initialsFromName(user.username));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function autoResize(el: HTMLTextAreaElement) {
     el.style.height = "auto";
@@ -273,7 +300,7 @@ export default function CitizenChatPage() {
     }
 
     setIsTyping(true);
-    const delay = 750 + Math.random() * 650;
+    const delay = 900;
     setTimeout(() => {
       const botMsg: Message = {
         id: nextId.current++,
@@ -348,7 +375,7 @@ export default function CitizenChatPage() {
       {/* ── Messages ─────────────────────────────────────────────────────── */}
       <div className="flex-1 px-4 md:px-8 py-5 space-y-4 max-w-3xl mx-auto w-full">
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} msg={msg} />
+          <MessageBubble key={msg.id} msg={msg} userInitials={userInitials} />
         ))}
         {isTyping && <TypingIndicator />}
         <div ref={messagesEndRef} />

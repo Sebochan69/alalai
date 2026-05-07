@@ -11,11 +11,11 @@ export function RegisterForm() {
     email: "",
     location_assigned: "",
     password: "",
-    confirmPassword: "",
   });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   function update(field: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -24,10 +24,6 @@ export function RegisterForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
     if (!form.username || !form.email || !form.password) {
       setError("Please fill in all required fields.");
       return;
@@ -41,10 +37,15 @@ export function RegisterForm() {
         password: form.password,
         location_assigned: form.location_assigned || undefined,
       });
-      router.push("/citizen/dashboard");
-    } catch {
-      setError("Registration failed. Please try again.");
-    } finally {
+      setSuccess(true);
+      setLoading(false);
+      window.setTimeout(() => router.replace("/login?registered=1"), 1200);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again.",
+      );
       setLoading(false);
     }
   }
@@ -86,6 +87,16 @@ export function RegisterForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          {success && (
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-4 py-3">
+              <p className="text-sm font-black text-emerald-500">
+                Account created
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Your account is ready. Redirecting you to sign in...
+              </p>
+            </div>
+          )}
           {error && (
             <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/8 border border-destructive/20 rounded-xl px-4 py-3">
               <svg
@@ -181,7 +192,8 @@ export function RegisterForm() {
               <button
                 type="button"
                 onClick={() => setShowPw((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                aria-label={showPw ? "Hide password" : "Show password"}
               >
                 {showPw ? (
                   <svg
@@ -217,30 +229,10 @@ export function RegisterForm() {
             </div>
           </div>
 
-          {/* Confirm password */}
-          <div className="space-y-1.5">
-            <label
-              htmlFor="confirmPassword"
-              className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
-            >
-              Confirm password <span className="text-destructive">*</span>
-            </label>
-            <input
-              id="confirmPassword"
-              type={showPw ? "text" : "password"}
-              placeholder="Repeat password"
-              autoComplete="new-password"
-              required
-              className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
-              value={form.confirmPassword}
-              onChange={update("confirmPassword")}
-            />
-          </div>
-
           <button
             type="submit"
-            disabled={loading}
-            className="w-full h-11 rounded-xl font-black text-sm text-white bg-accent hover:bg-accent/90 transition-all shadow-sm hover:shadow-md hover:shadow-accent/25 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center justify-center gap-2.5 mt-1"
+            disabled={loading || success}
+            className="w-full h-11 rounded-xl font-black text-sm text-white bg-accent hover:bg-accent/90 transition-all shadow-sm hover:shadow-md hover:shadow-accent/25 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center justify-center gap-2.5 mt-1 cursor-pointer"
           >
             {loading ? (
               <>
@@ -267,6 +259,8 @@ export function RegisterForm() {
                 </svg>
                 <span>Creating account…</span>
               </>
+            ) : success ? (
+              "Redirecting to sign in..."
             ) : (
               "Create account"
             )}

@@ -7,6 +7,7 @@ import {
 import { getAdminComplaints, getCurrentUser } from "@/lib/api";
 import { SessionGuard } from "@/components/session-guard";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ChangePasswordButton } from "@/components/change-password-button";
 
 export default async function AdminLayout({
   children,
@@ -78,6 +79,10 @@ function AdminNav({
         </div>
         <div className="flex items-center gap-2 md:gap-3">
           <ThemeToggle />
+          <ChangePasswordButton
+            compact
+            className="sm:hidden w-8 h-8 rounded-lg border border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all flex items-center justify-center cursor-pointer"
+          />
           <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-border">
             <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white text-xs font-black shrink-0">
               {initials}
@@ -156,7 +161,8 @@ function AdminSidebar({
             </div>
           </div>
         </div>
-        <SignOutButton className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all group" />
+        <ChangePasswordButton className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all group cursor-pointer" />
+        <SignOutButton className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all group cursor-pointer" />
       </div>
     </aside>
   );

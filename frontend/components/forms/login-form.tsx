@@ -4,11 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login, storeToken } from "@/lib/api";
 
-interface LoginFormProps {
-  isAdmin: boolean;
-}
-
-export function LoginForm({ isAdmin }: LoginFormProps) {
+export function LoginForm() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -44,53 +40,31 @@ export function LoginForm({ isAdmin }: LoginFormProps) {
   return (
     <div className="bg-card border border-border rounded-2xl shadow-md overflow-hidden">
       {/* Header stripe */}
-      <div
-        className={`h-1.5 w-full ${isAdmin ? "bg-violet-600" : "bg-accent"}`}
-      />
+      <div className="h-1.5 w-full bg-accent" />
 
       <div className="p-6">
         {/* Icon + title */}
         <div className="flex items-center gap-3 mb-1">
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isAdmin ? "bg-violet-600" : "bg-accent"}`}
-          >
-            {isAdmin ? (
-              <svg
-                className="text-white"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-            ) : (
-              <svg
-                className="text-white"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            )}
+          <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center shrink-0">
+            <svg
+              className="text-white"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
           </div>
           <div>
             <h2 className="text-lg font-black tracking-tight">Sign in</h2>
             <p className="text-xs text-muted-foreground">
-              {isAdmin
-                ? "Access your admin dashboard."
-                : "Track and file barangay concerns."}
+              One account form for citizens and admins.
             </p>
           </div>
         </div>
@@ -157,7 +131,8 @@ export function LoginForm({ isAdmin }: LoginFormProps) {
               <button
                 type="button"
                 onClick={() => setShowPw((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                aria-label={showPw ? "Hide password" : "Show password"}
               >
                 {showPw ? (
                   <svg
@@ -196,7 +171,7 @@ export function LoginForm({ isAdmin }: LoginFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full h-11 rounded-xl font-black text-sm text-white transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center justify-center gap-2.5 ${isAdmin ? "bg-violet-600 hover:bg-violet-600/90 hover:shadow-violet-500/25" : "bg-accent hover:bg-accent/90 hover:shadow-accent/25"}`}
+            className="w-full h-11 rounded-xl font-black text-sm text-white transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center justify-center gap-2.5 bg-accent hover:bg-accent/90 hover:shadow-accent/25 cursor-pointer"
           >
             {loading ? (
               <>

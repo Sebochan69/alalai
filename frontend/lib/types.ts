@@ -50,6 +50,10 @@ export interface User {
   created_at?: string;
 }
 
+export interface AdminUser extends User {
+  active_reports?: number;
+}
+
 // Maps to the `comments` table
 export interface Comment {
   id: string;
@@ -103,6 +107,19 @@ export interface RegisterDto {
   email: string;
   password: string;
   location_assigned?: string;
+}
+
+export interface AdminUserDto {
+  username: string;
+  email_address: string;
+  password?: string;
+  location_assigned: string;
+}
+
+export interface ChangePasswordDto {
+  old_password: string;
+  new_password: string;
+  confirm_new_password: string;
 }
 
 // --- Response types -----------------------------------------------------------

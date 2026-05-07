@@ -24,7 +24,7 @@ export function SignOutButton({
     <button
       type="button"
       onClick={handleSignOut}
-      className={className}
+      className={`${className} cursor-pointer`}
       aria-label="Sign out"
       title="Sign out"
     >
