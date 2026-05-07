@@ -1,6 +1,32 @@
+import re
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator, ConfigDict
+
+def validate_password_complexity(v: str) -> str:
+    if len(v) < 8:
+        raise ValueError("Password must be at least 8 characters long")
+    if not re.search(r'[A-Z]', v):
+        raise ValueError("Password must contain at least one uppercase letter (A-Z)")
+    if not re.search(r'[a-z]', v):
+        raise ValueError("Password must contain at least one lowercase letter (a-z)")
+    if not re.search(r'\d', v):
+        raise ValueError("Password must contain at least one number (0-9)")
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+        raise ValueError("Password must contain at least one special character")
+    return v
+
+
+class UserCreate(BaseModel):
+    username: str
+    email_address: EmailStr
+    password: str
+    location_assigned: str
+
+    @field_validator('password')
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return validate_password_complexity(v)
 
 
 class LoginRequest(BaseModel):
@@ -19,15 +45,31 @@ class TokenData(BaseModel):
     role: Optional[str] = None
 
 
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+    confirm_new_password: str
+
+    @field_validator('new_password')
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return validate_password_complexity(v)
+
+    @model_validator(mode='after')
+    def check_passwords_match(self):
+        if self.new_password != self.confirm_new_password:
+            raise ValueError("New passwords do not match")
+        return self
+
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     username: str
     email_address: EmailStr
     role: str
     location_assigned: Optional[str] = None
 
-    class Config:
-        from_attributes = True
 
 
 class ReportBase(BaseModel):
@@ -51,6 +93,7 @@ class ReportOut(BaseModel):
     longitude: Optional[float] = None
     tag: Optional[str] = None
     priority: Optional[str] = None
+    media: Optional[str] = None
     ai_summary: Optional[str] = None
     dispatch_reason: Optional[str] = None
     ai_processed_complaint: Optional[str] = None
@@ -59,8 +102,7 @@ class ReportOut(BaseModel):
     admin_comment: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MonthlyReportOut(BaseModel):
@@ -116,3 +158,27 @@ class ComplaintTaggingResult(BaseModel):
         if v.lower() not in valid_priorities:
             raise ValueError(f"Priority must be one of {valid_priorities}")
         return v.lower()
+
+class AdminCreate(BaseModel):
+    username: str
+    email_address: EmailStr
+    password: str
+    location_assigned: str
+
+    @field_validator('password')
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return validate_password_complexity(v)
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email_address: Optional[EmailStr] = None
+    location_assigned: Optional[str] = None
+
+UserCreate.model_rebuild()
+AdminCreate.model_rebuild()
+ChangePasswordRequest.model_rebuild()
+UserUpdate.model_rebuild()
+UserResponse.model_rebuild()
+ReportOut.model_rebuild()
+MonthlyReportOut.model_rebuild()

@@ -208,6 +208,20 @@ Residents may report the following through AlalAI or directly to the barangay of
 
 ---
 
+# Complaint Status Demo
+
+> Demo-only complaint status records for chatbot testing.
+
+| Complaint ID | Resident | Concern | Location | Status | Assigned Admin | Latest Update |
+|---|---|---|---|---|---|---|
+| 1001 | Demo Resident | Clogged drainage causing street flooding | Alley 12, Road 1 | In Progress | Admin Maria | Barangay maintenance team is scheduled to inspect the drainage today. |
+| 1002 | Demo Resident | Broken street light near the basketball court | Road 8, cor. Road 2 | For Review | Admin Carlo | Repair was completed and is waiting for resident confirmation. |
+| 1003 | Demo Resident | Garbage not collected for two days | Road 1 | Resolved | Admin Maria | Collection team completed pickup and cleared the reported area. |
+
+If the resident asks for "my complaint status" without giving a complaint ID, use Complaint ID 1001 as the default demo complaint.
+
+---
+
 # Health Center Services
 
 ## Weekly Services

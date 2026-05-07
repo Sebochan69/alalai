@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db, require_admin
@@ -12,8 +12,10 @@ from app.schemas.schemas import MonthlyReportOut, ReportOut, ReportStatusUpdate
 from app.services.ai.ai_tagging import AITaggingService
 from app.services.ai.ai_service import AIService
 from app.services.monthly_report_service import generate_monthly_report, report_to_dict
+from app.services.email_service import send_report_status_email
 from app.services.notification_service import create_notification
-from app.services.report_service import count_user_reports, find_possible_duplicate
+from app.services.report_service import find_possible_duplicate
+from app.services.storage_service import upload_complaint_photo
 
 router = APIRouter()
 
@@ -32,6 +34,7 @@ def complaint_to_report_out(complaint: Complaint) -> dict:
         "longitude": complaint.long,
         "tag": complaint.tagging,
         "priority": complaint.priority,
+        "media": complaint.media,
         "ai_summary": complaint.summary,
         "dispatch_reason": complaint.dispatch_reason,
         "ai_processed_complaint": complaint.ai_processed_complaint,
@@ -44,6 +47,7 @@ def complaint_to_report_out(complaint: Complaint) -> dict:
 
 @router.post("/", response_model=ReportOut)
 async def file_report(
+    background_tasks: BackgroundTasks,
     address: str = Form(...),
     description: str = Form(...),
     latitude: Optional[float] = Form(None),
@@ -55,10 +59,6 @@ async def file_report(
     if (current_user.role or "").lower() != "citizen":
         raise HTTPException(
             status_code=403, detail="Only citizens can file reports")
-
-    if count_user_reports(db, current_user.id) >= settings.MAX_REPORTS_PER_USER:
-        raise HTTPException(
-            status_code=400, detail=f"Maximum of {settings.MAX_REPORTS_PER_USER} reports reached")
 
     ai = AIService()
     tagging = AITaggingService()
@@ -100,6 +100,19 @@ async def file_report(
         "assignment": assignment,
         "possible_duplicate_report_id": duplicate_id,
     }
+    media_url = None
+    if photo:
+        try:
+            media_url = upload_complaint_photo(
+                file_bytes=await photo.read(),
+                filename=photo.filename,
+                content_type=photo.content_type,
+            )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to upload complaint photo",
+            ) from exc
 
     report = Complaint(
         user_id=current_user.id,
@@ -112,6 +125,7 @@ async def file_report(
         location_area=tag_result.get("location_area"),
         summary=tag_result.get("summary"),
         priority=tag_result.get("priority"),
+        media=media_url,
         dispatch_reason=assignment.get("dispatch_reason"),
         ai_processed_complaint=json.dumps(
             ai_processed_complaint, ensure_ascii=False),
@@ -122,6 +136,13 @@ async def file_report(
     db.add(report)
     db.commit()
     db.refresh(report)
+
+    background_tasks.add_task(
+        send_report_status_email,
+        current_user,
+        report,
+        report.status,
+    )
 
     if report.assigned_id:
         create_notification(
@@ -190,6 +211,15 @@ def create_monthly_report(
     return report_to_dict(report)
 
 
+@router.get("/monthly", response_model=list[MonthlyReportOut])
+def get_all_monthly_reports(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    reports = db.query(Report).order_by(Report.month.desc()).all()
+    return [report_to_dict(report) for report in reports]
+
+
 @router.get("/monthly/{month}", response_model=MonthlyReportOut)
 def get_monthly_report(
     month: str,
@@ -207,6 +237,7 @@ def get_monthly_report(
 def update_report_status(
     report_id: int,
     payload: ReportStatusUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -244,6 +275,14 @@ def update_report_status(
 
     db.commit()
     db.refresh(report)
+
+    if current_status != next_status:
+        background_tasks.add_task(
+            send_report_status_email,
+            report.created_by,
+            report,
+            report.status,
+        )
 
     if report.status == "for-review":
         create_notification(

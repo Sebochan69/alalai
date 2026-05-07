@@ -7,6 +7,7 @@ from app.db.db import Base, engine
 from app.api.routes import auth, reports, admin, chatbot, notifications, users, complaint
 from app.db.session import engine
 import app.db.db as legacy_db
+from app.schemas import schemas
 
 Base.metadata.create_all(bind=engine)
 
