@@ -69,6 +69,24 @@ async function handleAuthFailure(res: Response) {
   return detail;
 }
 
+async function readApiError(res: Response, fallback: string) {
+  const text = await handleAuthFailure(res);
+  if (!text) return fallback;
+  try {
+    const parsed = JSON.parse(text);
+    if (typeof parsed?.detail === "string") return parsed.detail;
+    if (Array.isArray(parsed?.detail)) {
+      return parsed.detail
+        .map((item: ApiRecord) => firstString(item.msg, item.message))
+        .filter(Boolean)
+        .join(", ");
+    }
+  } catch {
+    // Plain text response.
+  }
+  return text;
+}
+
 async function resolveToken(explicit?: string): Promise<string | null> {
   if (explicit) return explicit;
   if (typeof window !== "undefined") {
@@ -213,6 +231,14 @@ function mapReport(r: any): Complaint {
     priority: priority as Complaint["priority"],
     media: r.photo_url ?? r.media ?? undefined,
     tagging: r.tag ?? r.tagging ?? "",
+    title: firstString(
+      r.title,
+      r.subject,
+      r.concern,
+      r.issue,
+      r.issue_title,
+      r.complaint_title,
+    ),
     created_at: createdAt,
     updated_at: updatedAt,
     summary: r.ai_summary ?? r.summary ?? undefined,
@@ -501,7 +527,13 @@ export async function createComplaint(
     headers: authHeader(token),
     body: form,
   });
-  if (!res.ok) throw new Error(await handleAuthFailure(res));
+  if (!res.ok) {
+    const detail = await readApiError(
+      res,
+      `Report submission failed with status ${res.status}.`,
+    );
+    throw new Error(`${res.status}: ${detail}`);
+  }
   return mapReport(await res.json());
 }
 
@@ -657,6 +689,7 @@ export async function getMapData(_token?: string): Promise<Complaint[]> {
   const token = await resolveToken(_token);
   const res = await fetch(`${API_BASE}/reports/map`, {
     headers: authHeader(token),
+    cache: "no-store",
   });
   if (!res.ok) {
     await handleAuthFailure(res);
@@ -664,9 +697,7 @@ export async function getMapData(_token?: string): Promise<Complaint[]> {
   }
   const data = await res.json();
   const items = Array.isArray(data) ? data : [];
-  return items
-    .map(mapReport)
-    .filter((c: Complaint) => c.lat != null && c.lng != null);
+  return items.map(mapReport);
 }
 
 /**

@@ -1,6 +1,8 @@
-﻿import { getMyComplaints, getCurrentUser, geocodeLocation } from "@/lib/api";
+import Link from "next/link";
+import { getMapData, getCurrentUser, geocodeLocation } from "@/lib/api";
 import { BrgyMapClient } from "@/components/map/brgy-map-client";
 import type { MapPin } from "@/components/map/brgy-map";
+import type { Complaint } from "@/lib/types";
 
 const LEGEND = [
   { color: "bg-amber-400", label: "Pending" },
@@ -9,11 +11,39 @@ const LEGEND = [
   { color: "bg-emerald-500", label: "Resolved" },
 ];
 
+const STATUS_DOT: Record<string, string> = {
+  pending: "bg-amber-400",
+  "in-progress": "bg-blue-500",
+  "for-review": "bg-violet-500",
+  resolved: "bg-emerald-500",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  pending: "Pending",
+  "in-progress": "In Progress",
+  "for-review": "For Review",
+  resolved: "Resolved",
+};
+
+function titleCase(value: string) {
+  return value
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function reportTitle(report: Complaint) {
+  return (
+    report.title?.trim() ||
+    report.description?.trim() ||
+    report.summary?.trim() ||
+    titleCase(report.tagging || "barangay report")
+  );
+}
+
 export default async function BrgyMapPage() {
-  const [complaints, user] = await Promise.all([
-    getMyComplaints(),
-    getCurrentUser(),
-  ]);
+  const [complaints, user] = await Promise.all([getMapData(), getCurrentUser()]);
 
   const center = user?.location_assigned
     ? await geocodeLocation(user.location_assigned)
@@ -26,21 +56,21 @@ export default async function BrgyMapPage() {
     id: c.id,
     lat: c.lat!,
     lng: c.lng!,
-    title: c.title ?? c.description.slice(0, 60),
+    title: reportTitle(c),
     status: c.status as MapPin["status"],
     tagging: c.tagging,
     summary: c.summary ?? c.description,
   }));
+
   return (
     <div className="p-5 md:p-8 max-w-5xl mx-auto w-full">
-      {/* Page header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-foreground">
             Barangay Map
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Live complaint locations near your assigned area.
+            Live complaint locations across your barangay.
           </p>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 bg-card border border-border rounded-full px-3 py-1.5">
@@ -49,7 +79,6 @@ export default async function BrgyMapPage() {
         </div>
       </div>
 
-      {/* Legend */}
       <div className="flex flex-wrap gap-3 mb-4">
         {LEGEND.map((l) => (
           <div
@@ -64,7 +93,6 @@ export default async function BrgyMapPage() {
         ))}
       </div>
 
-      {/* Map container */}
       <div
         className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden"
         style={{ height: "calc(100vh - 280px)", minHeight: "420px" }}
@@ -98,8 +126,7 @@ export default async function BrgyMapPage() {
         )}
       </div>
 
-      {/* Info note */}
-      <div className="mt-4 flex items-start gap-2.5 text-xs text-muted-foreground">
+      <div className="mt-4 flex flex-wrap items-start gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
         <svg
           width="13"
           height="13"
@@ -115,90 +142,78 @@ export default async function BrgyMapPage() {
           <line x1="12" y1="8" x2="12" y2="12" />
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
-        Pins appear when a complaint is filed with GPS location. Powered by{" "}
-        <a
-          href="https://www.maptiler.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-accent hover:underline font-medium"
-        >
-          MapTiler
-        </a>{" "}
-        +{" "}
-        <a
-          href="https://maplibre.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-accent hover:underline font-medium"
-        >
-          MapLibre
-        </a>
-        .
+        <span>
+          Showing {pins.length} pinned reports
+          {noCoords.length > 0 ? ` and ${noCoords.length} without GPS` : ""}.
+        </span>
+        <span>
+          Powered by{" "}
+          <a
+            href="https://www.maptiler.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline font-medium"
+          >
+            MapTiler
+          </a>{" "}
+          +{" "}
+          <a
+            href="https://maplibre.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline font-medium"
+          >
+            MapLibre
+          </a>
+          .
+        </span>
       </div>
 
-      {/* Reports without GPS */}
-      {noCoords.length > 0 && (
+      {complaints.length > 0 && (
         <div className="mt-6">
-          <div className="flex items-center gap-2 mb-3">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-muted-foreground"
-            >
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-              <line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" />
-            </svg>
-            <p className="text-sm font-bold">Reports without GPS location</p>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <p className="text-sm font-bold">Barangay reports</p>
             <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-              {noCoords.length}
+              {complaints.length}
             </span>
+            {noCoords.length > 0 && (
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                {noCoords.length} without GPS
+              </span>
+            )}
           </div>
           <div className="space-y-2">
-            {noCoords.map((c) => {
-              const STATUS_DOT: Record<string, string> = {
-                pending: "bg-amber-400",
-                "in-progress": "bg-blue-500",
-                "for-review": "bg-violet-500",
-                resolved: "bg-emerald-500",
-              };
-              const STATUS_LABEL: Record<string, string> = {
-                pending: "Pending",
-                "in-progress": "In Progress",
-                "for-review": "For Review",
-                resolved: "Resolved",
-              };
-              return (
-                <div
-                  key={c.id}
-                  className="bg-card border border-border/60 rounded-xl px-4 py-3 flex items-center gap-3"
-                >
-                  <span
-                    className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[c.status] ?? "bg-slate-400"}`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">
-                      {c.title ?? c.description.slice(0, 60)}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {c.location}
-                    </p>
-                  </div>
-                  <span className="text-xs text-muted-foreground shrink-0">
+            {complaints.map((c) => (
+              <Link
+                key={c.id}
+                href={`/citizen/reports/${c.id}`}
+                className="group bg-card border border-border/60 rounded-xl px-4 py-3 flex items-center gap-3 hover:border-accent/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+              >
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[c.status] ?? "bg-slate-400"}`}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate group-hover:text-accent transition-colors">
+                    {reportTitle(c)}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {c.location || "No address provided"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="hidden sm:inline text-[11px] text-muted-foreground">
+                    {c.lat != null && c.lng != null ? "Pinned" : "No GPS"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
                     {STATUS_LABEL[c.status] ?? c.status}
                   </span>
                 </div>
-              );
-            })}
+              </Link>
+            ))}
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            These reports have no GPS coordinates — file via the app to see them
-            on the map.
+            Reports with GPS coordinates appear as pins; the rest stay listed
+            here for visibility.
           </p>
         </div>
       )}

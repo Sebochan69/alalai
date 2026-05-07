@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { createComplaint } from "@/lib/api";
 
 const AI_STEPS = [
@@ -24,6 +24,51 @@ const AI_STEPS = [
   },
 ];
 
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+function extensionForType(type: string) {
+  if (type === "image/png") return "png";
+  if (type === "image/webp") return "webp";
+  return "jpg";
+}
+
+async function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality?: number,
+) {
+  return new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, type, quality),
+  );
+}
+
+async function normalizeUploadImage(file: File) {
+  if (file.type !== "image/webp") return file;
+
+  const image = new Image();
+  image.src = URL.createObjectURL(file);
+  await image.decode();
+
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    URL.revokeObjectURL(image.src);
+    return file;
+  }
+
+  context.drawImage(image, 0, 0);
+  URL.revokeObjectURL(image.src);
+
+  const blob = await canvasToBlob(canvas, "image/jpeg", 0.88);
+  if (!blob) return file;
+
+  const basename = file.name.replace(/\.[^.]+$/, "") || "complaint-photo";
+  return new File([blob], `${basename}.jpg`, { type: "image/jpeg" });
+}
+
 export function FileConcernForm() {
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
@@ -37,6 +82,7 @@ export function FileConcernForm() {
   const [processing, setProcessing] = useState(false);
   const [aiStep, setAiStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [canRetryWithoutPhoto, setCanRetryWithoutPhoto] = useState(false);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -95,21 +141,43 @@ export function FileConcernForm() {
   }
 
   // ── Image pick ───────────────────────────────────────────────────────────────
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image must be under 5 MB.");
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setError("Please upload a JPG, PNG, or WEBP image.");
+      if (fileRef.current) fileRef.current.value = "";
       return;
     }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-    setError(null);
+    if (file.size > MAX_IMAGE_SIZE) {
+      setError("Image must be under 5 MB.");
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+    try {
+      const normalized = await normalizeUploadImage(file);
+      if (normalized.size > MAX_IMAGE_SIZE) {
+        setError("Converted image must be under 5 MB. Try a smaller photo.");
+        if (fileRef.current) fileRef.current.value = "";
+        return;
+      }
+      setImageFile(normalized);
+      setImagePreview(URL.createObjectURL(normalized));
+      setError(null);
+      setCanRetryWithoutPhoto(false);
+    } catch {
+      setError("Could not prepare this image. Try a JPG or PNG photo.");
+      if (fileRef.current) fileRef.current.value = "";
+    }
   }
 
   // ── Submit ───────────────────────────────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    await submitConcern(imageFile);
+  }
+
+  async function submitConcern(photo: File | null) {
     if (!address.trim() && !latitude) {
       setError("Please enter an address or pin your GPS location.");
       return;
@@ -119,6 +187,7 @@ export function FileConcernForm() {
       return;
     }
     setError(null);
+    setCanRetryWithoutPhoto(false);
     setLoading(true);
     setProcessing(true);
     setAiStep(0);
@@ -129,15 +198,22 @@ export function FileConcernForm() {
         description,
         lat: latitude ? parseFloat(latitude) : undefined,
         long: longitude ? parseFloat(longitude) : undefined,
-        media: imageFile ?? undefined,
+        media: photo ?? undefined,
       });
       // Let AI animation finish before showing success
       await new Promise((r) => setTimeout(r, 2600));
       setProcessing(false);
       setSubmitted(complaint.id);
-    } catch {
+    } catch (err) {
       setProcessing(false);
-      setError("Failed to submit. Please try again.");
+      const detail =
+        err instanceof Error ? err.message : "Failed to submit. Please try again.";
+      setError(
+        photo
+          ? `${detail} This may be related to photo upload. You can retry without the photo.`
+          : detail,
+      );
+      setCanRetryWithoutPhoto(Boolean(photo));
     } finally {
       setLoading(false);
     }
@@ -420,23 +496,35 @@ export function FileConcernForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Error */}
         {error && (
-          <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/8 border border-destructive/20 rounded-xl px-4 py-3">
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="shrink-0"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            {error}
+          <div className="space-y-3 text-xs text-destructive bg-destructive/8 border border-destructive/20 rounded-xl px-4 py-3">
+            <div className="flex items-start gap-2">
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mt-0.5 shrink-0"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{error}</span>
+            </div>
+            {canRetryWithoutPhoto && (
+              <button
+                type="button"
+                onClick={() => submitConcern(null)}
+                disabled={loading}
+                className="h-9 px-3 rounded-xl border border-destructive/30 text-destructive font-bold hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                Retry without photo
+              </button>
+            )}
           </div>
         )}
 
@@ -562,7 +650,7 @@ export function FileConcernForm() {
           <input
             ref={fileRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept={ACCEPTED_IMAGE_TYPES.join(",")}
             className="hidden"
             onChange={handleImageChange}
           />
@@ -599,6 +687,12 @@ export function FileConcernForm() {
               </button>
               <p className="text-xs text-muted-foreground mt-1.5 truncate">
                 {imageFile?.name}
+                {imageFile?.type && (
+                  <span className="text-muted-foreground/60">
+                    {" "}
+                    ({extensionForType(imageFile.type).toUpperCase()})
+                  </span>
+                )}
               </p>
             </div>
           ) : (
@@ -651,7 +745,7 @@ export function FileConcernForm() {
           <p className="text-xs text-muted-foreground leading-relaxed">
             <strong className="text-foreground">Email updates</strong> will be
             sent when your report moves from <em>Pending</em> →{" "}
-            <em>In Progress</em> → <em>Resolved</em>.
+            <em>In Progress</em> → <em>For Review</em>.
           </p>
         </div>
 
