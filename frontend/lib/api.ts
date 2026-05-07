@@ -400,7 +400,7 @@ export async function updateComplaint(
 
   if (dto.status || dto.adminComment != null) {
     const existingStatus =
-      latest?.status ?? (await getAdminComplaint(id, token))?.status;
+      latest?.status ?? (await getAdminComplaint(id, token ?? undefined))?.status;
     const payload: Record<string, unknown> = {
       status: dto.status ?? existingStatus ?? "pending",
     };
@@ -416,7 +416,7 @@ export async function updateComplaint(
   }
 
   if (latest) return latest;
-  const existing = await getAdminComplaint(id, token);
+  const existing = await getAdminComplaint(id, token ?? undefined);
   if (existing) return existing;
   throw new Error("Report not found");
 }

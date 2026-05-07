@@ -28,8 +28,11 @@ export default function MyReportsLoading() {
 
       {/* Tab chips */}
       <div className="flex items-center gap-2 flex-wrap">
-        {[80, 96, 88, 96, 80].map((w, i) => (
-          <Skeleton key={i} className="h-8 rounded-full" style={{ width: w }} />
+        {["w-20", "w-24", "w-22", "w-24", "w-20"].map((widthClass, i) => (
+          <Skeleton
+            key={i}
+            className={`h-8 rounded-full ${widthClass}`}
+          />
         ))}
       </div>
 

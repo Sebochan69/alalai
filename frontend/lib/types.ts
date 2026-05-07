@@ -76,6 +76,7 @@ export interface MonthlyReport {
 // --- Request DTOs -------------------------------------------------------------
 
 export interface CreateComplaintDto {
+  title?: string;
   location: string;
   description: string;
   // `long` and `lat` match BE field names (stored as str, sent as number)
