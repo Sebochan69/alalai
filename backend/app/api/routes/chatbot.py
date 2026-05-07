@@ -51,6 +51,7 @@ SECTION_ALIASES = {
     "Garbage Collection": "garbage trash waste collection pickup schedule disposal biodegradable non biodegradable",
     "Flooding Reminder": "flood flooding drainage rain typhoon disaster emergency report clogged evacuation",
     "Complaint Reporting Guide": "complaint complaints report reporting incident issue concern anonymous evidence",
+    "Complaint Status Demo": "complaint complaints report reports status update tracking assigned admin progress resolved review",
     "Available Services": "service services clearance residency indigency cedula id application mediation assistance",
     "Civil & Administrative Services": "service services clearance residency indigency cedula id application",
     "Community Services": "service services complaint mediation disaster senior citizen solo parent assistance",
@@ -246,6 +247,32 @@ def summarize_specific_event(body: str, question_tokens: set[str]) -> str | None
     return summarize_event_programs(f"## {best_title}\n{best_body}")
 
 
+def answer_complaint_status_demo(body: str, message: str) -> str:
+    rows = [line.strip() for line in body.splitlines() if line.strip().startswith("|")]
+    rows = [row for row in rows if not re.match(r"^\|\s*-+", row)]
+    if len(rows) < 2:
+        return plain_answer("Complaint Status Demo", body, {"complaint", "status"})
+
+    headers = [clean_markdown(cell) for cell in rows[0].strip("|").split("|")]
+    complaint_id_match = re.search(r"\b(?:complaint|report)?\s*#?\s*(\d{3,})\b", message.lower())
+    requested_id = complaint_id_match.group(1) if complaint_id_match else "1001"
+
+    for row in rows[1:]:
+        cells = [clean_markdown(cell) for cell in row.strip("|").split("|")]
+        if len(cells) != len(headers):
+            continue
+        record = dict(zip(headers, cells))
+        if record.get("Complaint ID") == requested_id:
+            return (
+                f"Complaint #{record['Complaint ID']} is {record['Status']}. "
+                f"Concern: {record['Concern']}. "
+                f"Assigned admin: {record['Assigned Admin']}. "
+                f"Latest update: {record['Latest Update']}"
+            )
+
+    return f"Sorry, wala akong demo status for complaint #{requested_id}. Available demo complaint IDs are 1001, 1002, and 1003."
+
+
 def answer_from_knowledge_base(message: str) -> str:
     sections = load_knowledge_sections()
     question_tokens = tokenize(message)
@@ -273,6 +300,11 @@ def answer_from_knowledge_base(message: str) -> str:
                 return specific_event
             if question_tokens & {"events", "programs", "upcoming", "list"}:
                 return summarize_event_programs(section)
+
+    if question_tokens & {"complaint", "complaints", "report", "reports"} and question_tokens & {"status", "update", "tracking", "progress"}:
+        section = sections.get("Complaint Status Demo")
+        if section:
+            return answer_complaint_status_demo(section, message)
 
     if "barangay id" in normalized_message and question_tokens & {"requirement", "requirements", "bring", "need", "needed"}:
         section = sections.get("Barangay ID Registration Drive")
